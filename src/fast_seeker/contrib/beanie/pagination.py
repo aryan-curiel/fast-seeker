@@ -11,4 +11,4 @@ class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, FindMany]):
 
 class BeaniePageNumberPaginator(PageNumberPaginator[FindMany, FindMany]):
     def paginate(self, data: FindMany, page_query: PageNumberModel) -> FindMany:
-        return data.limit(page_query.page_size).skip((page_query.page - 1) * page_query.page_size)
+        return data.limit(page_query.size).skip((page_query.page - 1) * page_query.size)
