@@ -11,6 +11,11 @@ dependencies = [
     "pydantic>=2.10.2",
 ]
 
+[project.optional-dependencies]
+beanie = [
+    "beanie>=1.27.0",
+]
+
 [dependency-groups]
 dev = [
     "coverage>=7.6.8",
