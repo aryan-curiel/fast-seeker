@@ -9,14 +9,14 @@ class SortingModel(BaseModel):
     order_by: list[str] = []
 
 
-class OrderDirection(StrEnum):
+class SortDirection(StrEnum):
     ASC = "asc"
     DESC = "desc"
 
 
-def parse_order_argument(order: str) -> tuple[str, OrderDirection]:
+def parse_order_argument(order: str) -> tuple[str, SortDirection]:
     order = order if order.startswith(("+", "-")) else f"+{order}"
-    return order[1:], OrderDirection.ASC if order[0] == "+" else OrderDirection.DESC
+    return order[1:], SortDirection.ASC if order[0] == "+" else SortDirection.DESC
 
 
 class Sorter[_Data, _Result](ABC):
@@ -24,12 +24,12 @@ class Sorter[_Data, _Result](ABC):
         self,
         sort_query: SortingModel,
         *,
-        arg_parser: Callable[[str], tuple[str, OrderDirection]] = parse_order_argument,
-    ) -> list[tuple[str, OrderDirection]]:
+        arg_parser: Callable[[str], tuple[str, SortDirection]] = parse_order_argument,
+    ) -> list[tuple[str, SortDirection]]:
         return [arg_parser(order) for order in sort_query.order_by]
 
     @abstractmethod
-    def _apply_order(self, data: _Data, order: list[tuple[str, OrderDirection]]) -> _Data:
+    def _apply_order(self, data: _Data, order: list[tuple[str, SortDirection]]) -> _Data:
         raise NotImplementedError
 
     def sort(
@@ -37,7 +37,7 @@ class Sorter[_Data, _Result](ABC):
         data: _Data,
         sort_query: SortingModel,
         *,
-        arg_parser: Callable[[str], tuple[str, OrderDirection]] = parse_order_argument,
+        arg_parser: Callable[[str], tuple[str, SortDirection]] = parse_order_argument,
     ) -> _Result:
         if not sort_query.order_by:
             return data
