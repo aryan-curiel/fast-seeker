@@ -6,8 +6,14 @@ dist/
 wheels/
 *.egg-info
 
+
 # Virtual environments
 .venv
 
 # Visual Studio Code
 .vscode
+
+# Other files
+.coverage
+.DS_Store
+lcov.info
