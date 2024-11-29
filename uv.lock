@@ -97,6 +97,9 @@ dependencies = [
 beanie = [
     { name = "beanie" },
 ]
+odmantic = [
+    { name = "odmantic" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -108,6 +111,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beanie", marker = "extra == 'beanie'", specifier = ">=1.27.0" },
+    { name = "odmantic", marker = "extra == 'odmantic'", specifier = ">=1.0.2" },
     { name = "pydantic", specifier = ">=2.10.2" },
 ]
 
@@ -149,6 +153,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6a/d1/06af0527fd02d49b203db70dba462e47275a3c1094f830fdaf090f0cb20c/motor-3.6.0.tar.gz", hash = "sha256:0ef7f520213e852bf0eac306adf631aabe849227d8aec900a2612512fb9c5b8d", size = 278447 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b4/c2/bba4dce0dc56e49d95c270c79c9330ed19e6b71a2a633aecf53e7e1f04c9/motor-3.6.0-py3-none-any.whl", hash = "sha256:9f07ed96f1754963d4386944e1b52d403a5350c687edc60da487d66f98dbf894", size = 74802 },
+]
+
+[[package]]
+name = "odmantic"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "motor" },
+    { name = "pydantic" },
+    { name = "pymongo" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/cf/77a4fccc2810bd5cbab5df36edb209e0e91b4bab390f0e969d67c17741bb/odmantic-1.0.2.tar.gz", hash = "sha256:bbd0d46bc920e0e6d966d9f3add7396bc92377d2c73860d071d5ca8102f57235", size = 140263 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bf/2d/c8ccdb60ccd873bff3dcabfd46fc7cf24fe09150a31446f6b3b947322fe2/odmantic-1.0.2-py3-none-any.whl", hash = "sha256:0475c763687624b70ba4d52266a7d0bdfb74dda7ec40162669334e9d41c06049", size = 36891 },
 ]
 
 [[package]]
