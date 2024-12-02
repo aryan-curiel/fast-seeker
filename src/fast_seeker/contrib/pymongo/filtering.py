@@ -1,16 +1,12 @@
-from collections.abc import Iterable
-
-from odmantic import Model as ODManticModel
-from odmantic.query import QueryExpression
+from pymongo.collection import Collection
+from pymongo.cursor import Cursor
 
 from fast_seeker.core.filtering import Filterer, FilterModel
 
 
-class ODManticFilterer(Filterer[type[ODManticModel], Iterable[QueryExpression]]):
-    def filter(
-        self, data: type[ODManticModel], filter_query: FilterModel, *args, **kwargs
-    ) -> Iterable[QueryExpression]:
-        filter_lookups = []
+class PyMongoFilterer(Filterer[Collection, Cursor]):
+    def filter(self, collection: Collection, filter_query: FilterModel, *args, **kwargs) -> Cursor:
+        filter_lookups = {}
         for field_name, field_info in filter_query.model_fields.items():
             resolver_func = getattr(filter_query, f"resolve_{field_name}", None)
             field_extra = field_info.json_schema_extra or filter_query.model_config.get("json_schema_extra", {})
@@ -21,11 +17,9 @@ class ODManticFilterer(Filterer[type[ODManticModel], Iterable[QueryExpression]])
             new_lookup = (
                 resolver_func(field_value, field_info)
                 if callable(resolver_func)
-                else getattr(data, field_name) == field_value
+                else {field_name: getattr(filter_query, field_name)}
             )
             if not new_lookup:
                 continue
-            if not isinstance(new_lookup, list):
-                new_lookup = [new_lookup]
-            filter_lookups.extend(new_lookup)
-        return filter_lookups
+            filter_lookups |= new_lookup
+        return collection.find(filter_lookups, *args, **kwargs)

@@ -22,6 +22,7 @@ odmantic = [
 [dependency-groups]
 dev = [
     "coverage>=7.6.8",
+    "pytest-cov>=6.0.0",
     "pytest>=8.3.3",
     "ruff>=0.8.0",
 ]
@@ -50,3 +51,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
+"**/conftest.py" = ["F401"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report lcov:lcov.info --cov-report term src/tests"

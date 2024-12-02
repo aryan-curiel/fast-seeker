@@ -15,7 +15,7 @@ class ODManticSorter(Sorter[type[ODManticModel], tuple[SortExpression, ...]]):
     ) -> tuple[SortExpression, ...]:
         sort_expressions: list[SortExpression] = []
         for key, direction in order:
-            model_field = getattr(data, key)
+            model_field = getattr(data, key, None)
             if not model_field:
                 raise ValueError(f"Field {key} does not exist on model {data}")
             sort_expressions.append(ODMANTIC_DIRECTION_MAP[direction](model_field))

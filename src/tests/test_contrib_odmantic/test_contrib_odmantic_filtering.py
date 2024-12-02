@@ -1,7 +1,7 @@
 import pytest
 from pydantic import Field
 
-from fast_seeker.contrib.odmantic.filtering import BeanieFilterer, FilterModel
+from fast_seeker.contrib.odmantic.filtering import FilterModel, ODManticFilterer
 
 from .utils import DummyDocument
 
@@ -42,6 +42,6 @@ class DummyFilterWithResolverNone(FilterModel):
     ],
 )
 def test_odmantic_filterer_filter__should_assign_expected_find_expressions(filter_query, expected_expressions):
-    filterer = BeanieFilterer()
+    filterer = ODManticFilterer()
     result = filterer.filter(DummyDocument, filter_query)
     assert result == expected_expressions
