@@ -6,7 +6,7 @@ from odmantic.query import QueryExpression
 from fast_seeker.core.filtering import Filterer, FilterModel
 
 
-class BeanieFilterer(Filterer[type[ODManticModel], Iterable[QueryExpression]]):
+class ODManticFilterer(Filterer[type[ODManticModel], Iterable[QueryExpression]]):
     def filter(
         self, data: type[ODManticModel], filter_query: FilterModel, *args, **kwargs
     ) -> Iterable[QueryExpression]:
