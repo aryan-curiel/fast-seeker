@@ -15,6 +15,9 @@ dependencies = [
 beanie = [
     "beanie>=1.27.0",
 ]
+odmantic = [
+    "odmantic>=1.0.2",
+]
 
 [dependency-groups]
 dev = [
