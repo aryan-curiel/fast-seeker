@@ -8,23 +8,26 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
-    "pydantic>=2.10.2",
+    "pydantic>=2.10.5",
 ]
 
 [project.optional-dependencies]
 beanie = [
-    "beanie>=1.27.0",
+    "beanie>=1.29.0",
 ]
 odmantic = [
     "odmantic>=1.0.2",
 ]
+django = [
+    "django>=4.2",
+]
 
 [dependency-groups]
 dev = [
-    "coverage>=7.6.8",
+    "coverage>=7.6.10",
     "pytest-cov>=6.0.0",
-    "pytest>=8.3.3",
-    "ruff>=0.8.0",
+    "pytest>=8.3.4",
+    "ruff>=0.9.1",
 ]
 
 [build-system]
