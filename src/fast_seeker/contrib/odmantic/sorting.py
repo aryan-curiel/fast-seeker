@@ -1,7 +1,7 @@
 from odmantic import Model as ODManticModel
 from odmantic.query import SortExpression, asc, desc
 
-from fast_seeker.core.sorting import SortDirection, Sorter
+from fast_seeker.core.sorting import OrderBuilder, SortDirection, SortingModel
 
 ODMANTIC_DIRECTION_MAP = {
     SortDirection.ASC: asc,
@@ -9,14 +9,9 @@ ODMANTIC_DIRECTION_MAP = {
 }
 
 
-class ODManticSorter(Sorter[type[ODManticModel], tuple[SortExpression, ...]]):
-    def _apply_order(
-        self, data: type[ODManticModel], order: list[tuple[str, SortDirection]]
-    ) -> tuple[SortExpression, ...]:
-        sort_expressions: list[SortExpression] = []
-        for key, direction in order:
-            model_field = getattr(data, key, None)
-            if not model_field:
-                raise ValueError(f"Field {key} does not exist on model {data}")
-            sort_expressions.append(ODMANTIC_DIRECTION_MAP[direction](model_field))
-        return tuple(sort_expressions)
+ODManticSortArgs = tuple[SortExpression, ...]
+
+
+class ODManticOrderBuilder(OrderBuilder[ODManticSortArgs]):
+    def get_order(self, model: type[ODManticModel], sort_query: SortingModel) -> ODManticSortArgs:
+        return tuple(ODMANTIC_DIRECTION_MAP[entry.direction](getattr(model, entry.key)) for entry in sort_query.parsed)

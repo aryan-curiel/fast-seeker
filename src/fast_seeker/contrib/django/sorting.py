@@ -1,13 +1,11 @@
 from django.db.models import QuerySet
 
-from fast_seeker.core.sorting import SortDirection, Sorter
-
-DJANGO_DIRECTION_MAP = {
-    SortDirection.ASC: "",
-    SortDirection.DESC: "-",
-}
+from fast_seeker.core.sorting import Sorter, SortingModel
 
 
-class QuerySetSorter(Sorter[QuerySet, QuerySet]):
-    def _apply_order(self, data: QuerySet, order: list[tuple[str, SortDirection]]) -> QuerySet:
-        return data.order_by(*[f"{DJANGO_DIRECTION_MAP[direction]}{key}" for key, direction in order])
+class QuerySetSorter(Sorter[QuerySet, QuerySet, list[str]]):
+    def get_order(self, sort_query: SortingModel) -> list[str]:
+        return sort_query.order_by
+
+    def _apply_order(self, data: QuerySet, order: list[str]) -> QuerySet:
+        return data.order_by(*order)

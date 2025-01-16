@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Generator
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import Self
 
 from pydantic import BaseModel
 
@@ -35,6 +36,32 @@ class OrderEntry:
     key: str
     direction: SortDirection
 
+    @classmethod
+    def asc(cls, key: str) -> Self:
+        """
+        Creates an OrderEntry object with the specified key and ascending direction.
+
+        Args:
+            key (str): The key by which to sort.
+
+        Returns:
+            OrderEntry: An OrderEntry object with the specified key and ascending direction.
+        """
+        return cls(key=key, direction=SortDirection.ASC)
+
+    @classmethod
+    def desc(cls, key: str) -> Self:
+        """
+        Creates an OrderEntry object with the specified key and descending direction.
+
+        Args:
+            key (str): The key by which to sort.
+
+        Returns:
+            OrderEntry: An OrderEntry object with the specified key and descending direction.
+        """
+        return cls(key=key, direction=SortDirection.DESC)
+
 
 GenericOrdering = list[tuple[str, SortDirection]]
 
@@ -57,7 +84,8 @@ class SortingModel(BaseModel):
 
     order_by: list[str] = []
 
-    def _parse_entry(self, order: str) -> OrderEntry:
+    @classmethod
+    def _parse_entry(cls, order: str) -> OrderEntry:
         """
         Parses a sorting order string and returns an OrderEntry object.
 
@@ -68,9 +96,6 @@ class SortingModel(BaseModel):
 
         Returns:
             OrderEntry: An object containing the key and the sorting direction.
-
-        Raises:
-            ValueError: If the sorting direction is not recognized.
         """
         order = order if order.startswith((ASC_SIGN, DESC_SIGN)) else f"{ASC_SIGN}{order}"
         return OrderEntry(key=order[1:], direction=SortDirection(order[0]))
@@ -83,10 +108,38 @@ class SortingModel(BaseModel):
         Yields:
             Generator[OrderEntry]: A generator that yields parsed `OrderEntry` objects.
         """
-        return (self._parse_entry(order) for order in self.order_by)
+        return (SortingModel._parse_entry(order) for order in self.order_by)
 
 
-class Sorter[_Data, _Result, _SortArgs](ABC):
+class OrderBuilder[_SortArgs](ABC):
+    """
+    OrderBuilder is an abstract base class that defines the interface for building sorting orders.
+
+    This class should be subclassed, and the subclass should implement the `get_order` method to provide
+    the sorting order based on the provided sorting query.
+
+    Methods:
+        get_order(sort_query: SortingModel) -> _SortArgs:
+    """
+
+    @abstractmethod
+    def get_order(self, sort_query: SortingModel) -> _SortArgs:
+        """
+        Abstract method to get the sorting order based on the provided sorting query.
+
+        Args:
+            sort_query (SortingModel): The sorting model containing the sorting criteria.
+
+        Returns:
+            _SortArgs: The sorting arguments derived from the sorting model.
+
+        Raises:
+            NotImplementedError: This method should be implemented by subclasses.
+        """
+        raise NotImplementedError
+
+
+class Sorter[_Data, _Result, _SortArgs](OrderBuilder[_SortArgs], ABC):
     """
     Abstract base class for sorting data.
 
@@ -129,22 +182,6 @@ class Sorter[_Data, _Result, _SortArgs](ABC):
 
         Raises:
             NotImplementedError: This method is not yet implemented.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_order(self, sort_query: SortingModel) -> _SortArgs:
-        """
-        Abstract method to get the sorting order based on the provided sorting query.
-
-        Args:
-            sort_query (SortingModel): The sorting model containing the sorting criteria.
-
-        Returns:
-            _SortArgs: The sorting arguments derived from the sorting model.
-
-        Raises:
-            NotImplementedError: This method should be implemented by subclasses.
         """
         raise NotImplementedError
 
