@@ -12,9 +12,14 @@ BEANIE_DIRECTION_MAP = {
 BeanieSortArgs = str | tuple[str, BeanieSortDirection] | list[tuple[str, BeanieSortDirection]]
 
 
-class BeanieSorter(Sorter[FindMany, FindMany, BeanieSortArgs]):
-    def get_order(self, sort_query: SortingModel) -> BeanieSortArgs:
-        return [(entry.key, BEANIE_DIRECTION_MAP[entry.direction]) for entry in sort_query.parsed]
+def beanie_sorting_translator(query: SortingModel) -> BeanieSortArgs:
+    return [(entry.key, BEANIE_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
 
-    def _apply_order(self, data: FindMany, order: BeanieSortArgs) -> FindMany:
-        return data.sort(order)
+
+def beanie_sorting_executor(data: FindMany, order: BeanieSortArgs) -> FindMany:
+    return data.sort(order)
+
+
+class BeanieSorter(Sorter[FindMany, FindMany, BeanieSortArgs]):
+    def __init__(self):
+        super().__init__(translator=beanie_sorting_translator, executor=beanie_sorting_executor)

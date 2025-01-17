@@ -1,24 +1,37 @@
+import pytest
 from django.db.models import QuerySet
 
-from fast_seeker.contrib.django.sorting import QuerySetSorter
-from fast_seeker.core.sorting import SortingModel
-
-########################################
-## Tests for the QuerySetSorter class ##
-########################################
+from fast_seeker.contrib.django.sorting import QuerySetSorter, django_sorting_executor, django_sorting_translator
 
 
-def test_django_sorter_get_order__should_return_expected_order():
-    order_args = ["-key1", "+key2", "key3"]
-    sort_query = SortingModel(order_by=order_args)
-    order = QuerySetSorter().get_order(sort_query)
-    assert order == order_args
+@pytest.mark.parametrize(
+    "order_by, expected",
+    [
+        (["-key1"], ["-key1"]),
+        (["+key1"], ["+key1"]),
+        (["key1"], ["key1"]),
+    ],
+)
+def test_django_sorting_translator(expected, sorting_model):
+    translated_query = django_sorting_translator(sorting_model)
+    assert translated_query == expected
 
 
-def test_django_sorter_apply_sort__should_apply_sorting_in_beanie(mocker):
+@pytest.mark.parametrize(
+    "translated_order, expected_expressions",
+    [
+        ([("key1", -1)], [("key1", -1)]),
+        ([("key1", 1)], [("key1", 1)]),
+    ],
+)
+def test_django_sorting_executor(translated_order, expected_expressions, mocker):
     mock_queryset = mocker.MagicMock(spec=QuerySet)
 
-    order = ["-key1", "+key2", "key3"]
+    django_sorting_executor(mock_queryset, translated_order)
+    mock_queryset.order_by.assert_called_once_with(*expected_expressions)
 
-    QuerySetSorter()._apply_order(mock_queryset, order)
-    mock_queryset.order_by.assert_called_once_with(*order)
+
+def test_beanie_sorter_ctor__should_properly_init_sorter():
+    sorter = QuerySetSorter()
+    assert sorter.translator is not None
+    assert sorter.executor is not None

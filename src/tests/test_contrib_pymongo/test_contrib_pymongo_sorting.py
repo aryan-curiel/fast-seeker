@@ -1,26 +1,34 @@
-from fast_seeker.contrib.pymongo.sorting import PyMongoSorter
-from fast_seeker.core.sorting import SortingModel
+import pytest
 
-#######################################
-## Tests for the PyMongoSorter class ##
-#######################################
+from fast_seeker.contrib.pymongo.sorting import PyMongoSorter, pymongo_sorting_executor, pymongo_sorting_translator
 
 
-def test_pymongo_sorter_get_order__should_return_expected_order():
-    sort_query = SortingModel(order_by=["-key1", "+key2", "key3"])
-    order = PyMongoSorter().get_order(sort_query)
-    assert order == [
-        ("key1", -1),
-        ("key2", 1),
-        ("key3", 1),
-    ]
+@pytest.mark.parametrize(
+    "order_by, expected",
+    [
+        (["-key1"], [("key1", -1)]),
+        (["+key1"], [("key1", 1)]),
+        (["key1"], [("key1", 1)]),
+    ],
+)
+def test_pymongo_sorting_translator(expected, sorting_model):
+    translated_query = pymongo_sorting_translator(sorting_model)
+    assert translated_query == expected
 
 
-def test_pymongo_sorter_apply_sort__should_apply_sorting_in_beanie(pymongo_cursor):
-    sort_query = [
-        ("key1", -1),
-        ("key2", 1),
-        ("key3", 1),
-    ]
-    PyMongoSorter()._apply_order(pymongo_cursor, sort_query)
-    pymongo_cursor.sort.assert_called_once_with(sort_query)
+@pytest.mark.parametrize(
+    "translated_order, expected_expressions",
+    [
+        ([("key1", -1)], [("key1", -1)]),
+        ([("key1", 1)], [("key1", 1)]),
+    ],
+)
+def test_pymongo_sorting_executor(translated_order, expected_expressions, pymongo_cursor):
+    cursor = pymongo_sorting_executor(pymongo_cursor, translated_order)
+    cursor.sort.assert_called_once_with(expected_expressions)
+
+
+def test_pymongo_sorter_ctor__should_properly_init_sorter():
+    sorter = PyMongoSorter()
+    assert sorter.translator is not None
+    assert sorter.executor is not None
