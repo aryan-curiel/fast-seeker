@@ -1,14 +1,25 @@
 from pymongo.cursor import Cursor
 
-from fast_seeker.core.pagination.limit_offset import LimitOffsetModel, LimitOffsetPaginator
-from fast_seeker.core.pagination.page_number import PageNumberModel, PageNumberPaginator
+from fast_seeker.core.pagination import LimitOffsetPaginator, LimitOffsetQuery, PageNumberPaginator, PageNumberQuery
 
 
-class PyMongoLimitOffsetPaginator(LimitOffsetPaginator[Cursor, Cursor]):
-    def paginate(self, cursor: Cursor, page_query: LimitOffsetModel) -> Cursor:
-        return cursor.skip(page_query.offset).limit(page_query.limit)
+def pymongo_limit_offset_translator(query: LimitOffsetQuery) -> LimitOffsetQuery:
+    return query
 
 
-class PyMongoPageNumberPaginator(PageNumberPaginator[Cursor, Cursor]):
-    def paginate(self, cursor: Cursor, page_query: PageNumberModel) -> Cursor:
-        return cursor.skip((page_query.page - 1) * page_query.size).limit(page_query.size)
+def pymongo_page_number_translator(query: PageNumberQuery) -> LimitOffsetQuery:
+    return LimitOffsetQuery(limit=query.size, offset=(query.page - 1) * query.size)
+
+
+def pymongo_pagination_executor(data: Cursor, args: LimitOffsetQuery) -> Cursor:
+    return data.limit(args.limit).skip(args.offset)
+
+
+class PyMongoLimitOffsetPaginator(LimitOffsetPaginator[Cursor, Cursor, LimitOffsetQuery]):
+    def __init__(self):
+        super().__init__(translator=pymongo_limit_offset_translator, executor=pymongo_pagination_executor)
+
+
+class PyMongoPageNumberPaginator(PageNumberPaginator[Cursor, Cursor, LimitOffsetQuery]):
+    def __init__(self):
+        super().__init__(translator=pymongo_page_number_translator, executor=pymongo_pagination_executor)

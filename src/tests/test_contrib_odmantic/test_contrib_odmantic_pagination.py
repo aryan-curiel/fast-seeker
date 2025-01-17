@@ -1,18 +1,15 @@
-from fast_seeker.contrib.odmantic.pagination import ODManticLimitOffsetPaginator, ODManticPageNumberPaginator
-from fast_seeker.core.pagination import LimitOffsetModel, PageNumberModel
+from fast_seeker.contrib.odmantic.pagination import ODManticLimitOffsetTranslator, ODManticPageNumberTranslator
+from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
 
 
-def test_odmantic_limit_offset_paginator_paginate__should_paginate_data():
-    paginator = ODManticLimitOffsetPaginator()
-    page_query = LimitOffsetModel(limit=2, offset=1)
-    result = paginator.paginate(page_query)
-    assert result["limit"] == page_query.limit
-    assert result["skip"] == page_query.offset
+def test_odmantic_limit_offset_translator__should_return_same_query():
+    query = LimitOffsetQuery(limit=1, offset=2)
+    result = ODManticLimitOffsetTranslator(query)
+    assert result == query
 
 
-def test_odmantic_page_number_paginator_paginate__should_paginate_data():
-    paginator = ODManticPageNumberPaginator()
-    page_query = PageNumberModel(page=1, size=2)
-    result = paginator.paginate(page_query)
-    assert result["limit"] == page_query.size
-    assert result["skip"] == (page_query.page - 1) * page_query.size
+def test_odmantic_page_number_translator__should_return_limit_offset_query():
+    query = PageNumberQuery(page=1, size=2)
+    result = ODManticPageNumberTranslator(query)
+    assert result.limit == query.size
+    assert result.offset == (query.page - 1) * query.size

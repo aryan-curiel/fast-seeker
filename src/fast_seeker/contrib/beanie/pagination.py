@@ -1,14 +1,25 @@
 from beanie.odm.queries.find import FindMany
 
-from fast_seeker.core.pagination.limit_offset import LimitOffsetModel, LimitOffsetPaginator
-from fast_seeker.core.pagination.page_number import PageNumberModel, PageNumberPaginator
+from fast_seeker.core.pagination import LimitOffsetPaginator, LimitOffsetQuery, PageNumberPaginator, PageNumberQuery
 
 
-class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, FindMany]):
-    def paginate(self, data: FindMany, page_query: LimitOffsetModel) -> FindMany:
-        return data.limit(page_query.limit).skip(page_query.offset)
+def beanie_limit_offset_translator(query: LimitOffsetQuery) -> LimitOffsetQuery:
+    return query
 
 
-class BeaniePageNumberPaginator(PageNumberPaginator[FindMany, FindMany]):
-    def paginate(self, data: FindMany, page_query: PageNumberModel) -> FindMany:
-        return data.limit(page_query.size).skip((page_query.page - 1) * page_query.size)
+def beanie_page_number_translator(query: PageNumberQuery) -> LimitOffsetQuery:
+    return LimitOffsetQuery(limit=query.size, offset=(query.page - 1) * query.size)
+
+
+def beanie_pagination_executor(data: FindMany, args: LimitOffsetQuery) -> FindMany:
+    return data.limit(args.limit).skip(args.offset)
+
+
+class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, FindMany, LimitOffsetQuery]):
+    def __init__(self):
+        super().__init__(translator=beanie_limit_offset_translator, executor=beanie_pagination_executor)
+
+
+class BeaniePageNumberPaginator(PageNumberPaginator[FindMany, FindMany, LimitOffsetQuery]):
+    def __init__(self):
+        super().__init__(translator=beanie_page_number_translator, executor=beanie_pagination_executor)
