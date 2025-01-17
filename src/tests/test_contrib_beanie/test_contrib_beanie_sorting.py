@@ -13,8 +13,8 @@ from .utils import DummyFindMany
         (["key1"], [("key1", 1)]),
     ],
 )
-def test_beanie_sorting_translator(expected, sorting_model):
-    translated_query = beanie_sorting_translator(sorting_model)
+def test_beanie_sorting_translator(expected, sorting_query):
+    translated_query = beanie_sorting_translator(sorting_query)
     assert translated_query == expected
 
 

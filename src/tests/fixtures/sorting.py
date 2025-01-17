@@ -1,8 +1,8 @@
 import pytest
 
-from fast_seeker.core.sorting import SortingModel
+from fast_seeker.core.sorting import SortingQuery
 
 
 @pytest.fixture
-def sorting_model(order_by):
-    return SortingModel(order_by=order_by)
+def sorting_query(order_by):
+    return SortingQuery(order_by=order_by)

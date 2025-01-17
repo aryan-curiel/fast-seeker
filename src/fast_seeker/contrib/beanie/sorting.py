@@ -1,7 +1,7 @@
 from beanie.odm.enums import SortDirection as BeanieSortDirection
 from beanie.odm.queries.find import FindMany
 
-from fast_seeker.core.sorting import SortDirection, Sorter, SortingModel
+from fast_seeker.core.sorting import SortDirection, Sorter, SortingQuery
 
 BEANIE_DIRECTION_MAP = {
     SortDirection.ASC: BeanieSortDirection.ASCENDING,
@@ -12,7 +12,7 @@ BEANIE_DIRECTION_MAP = {
 BeanieSortArgs = str | tuple[str, BeanieSortDirection] | list[tuple[str, BeanieSortDirection]]
 
 
-def beanie_sorting_translator(query: SortingModel) -> BeanieSortArgs:
+def beanie_sorting_translator(query: SortingQuery) -> BeanieSortArgs:
     return [(entry.key, BEANIE_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
 
 

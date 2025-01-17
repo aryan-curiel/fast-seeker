@@ -4,7 +4,7 @@ from odmantic import Model as ODManticModel
 from odmantic.query import SortExpression, asc, desc
 
 from fast_seeker.core.base import QueryTranslator
-from fast_seeker.core.sorting import SortDirection, SortingModel
+from fast_seeker.core.sorting import SortDirection, SortingQuery
 
 ODMANTIC_DIRECTION_MAP = {
     SortDirection.ASC: asc,
@@ -15,11 +15,11 @@ ODMANTIC_DIRECTION_MAP = {
 ODManticSortArgs = tuple[SortExpression, ...]
 
 
-class ODManticOrderTranslator(QueryTranslator[SortingModel, ODManticSortArgs]):
+class ODManticOrderTranslator(QueryTranslator[SortingQuery, ODManticSortArgs]):
     def __init__(self, model: type[ODManticModel]):
         self._model = model
 
-    def __call__(self, query: SortingModel) -> ODManticSortArgs:
+    def __call__(self, query: SortingQuery) -> ODManticSortArgs:
         return tuple(ODMANTIC_DIRECTION_MAP[entry.direction](getattr(self._model, entry.key)) for entry in query.parsed)
 
     @classmethod

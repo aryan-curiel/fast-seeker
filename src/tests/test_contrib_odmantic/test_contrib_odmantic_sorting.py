@@ -13,9 +13,9 @@ from .utils import DummyDocument
         (["field1"], ({"field1": 1},)),
     ],
 )
-def test_odmantic_sorting_translator(expected, sorting_model):
+def test_odmantic_sorting_translator(expected, sorting_query):
     translator = ODManticOrderTranslator(DummyDocument)
-    translated_query = translator(sorting_model)
+    translated_query = translator(sorting_query)
     assert translated_query == expected
 
 

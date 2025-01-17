@@ -12,8 +12,8 @@ from fast_seeker.contrib.django.sorting import QuerySetSorter, django_sorting_ex
         (["key1"], ["key1"]),
     ],
 )
-def test_django_sorting_translator(expected, sorting_model):
-    translated_query = django_sorting_translator(sorting_model)
+def test_django_sorting_translator(expected, sorting_query):
+    translated_query = django_sorting_translator(sorting_query)
     assert translated_query == expected
 
 

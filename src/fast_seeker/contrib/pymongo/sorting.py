@@ -3,7 +3,7 @@ from typing import Literal
 from pymongo import ASCENDING, DESCENDING
 from pymongo.cursor import Cursor
 
-from fast_seeker.core.sorting import SortDirection, Sorter, SortingModel
+from fast_seeker.core.sorting import SortDirection, Sorter, SortingQuery
 
 PYMONGO_DIRECTION_MAP = {
     SortDirection.ASC: ASCENDING,
@@ -14,7 +14,7 @@ PYMONGO_DIRECTION_MAP = {
 PyMongoSortArgs = list[tuple[str, Literal[1] | Literal[-1]]]
 
 
-def pymongo_sorting_translator(query: SortingModel) -> PyMongoSortArgs:
+def pymongo_sorting_translator(query: SortingQuery) -> PyMongoSortArgs:
     return [(entry.key, PYMONGO_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
 
 

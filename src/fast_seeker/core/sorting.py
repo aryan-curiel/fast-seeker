@@ -33,7 +33,7 @@ class OrderEntry:
 GenericOrdering = list[tuple[str, SortDirection]]
 
 
-class SortingModel(BaseModel):
+class SortingQuery(BaseModel):
     order_by: list[str] = []
 
     @classmethod
@@ -43,7 +43,7 @@ class SortingModel(BaseModel):
 
     @property
     def parsed(self) -> Generator[OrderEntry]:
-        return (SortingModel._parse_entry(order) for order in self.order_by)
+        return (SortingQuery._parse_entry(order) for order in self.order_by)
 
 
-class Sorter[_TData, _TResult, _TSortArgs](QueryProcessor[_TData, SortingModel, _TResult, _TSortArgs]): ...
+class Sorter[_TData, _TResult, _TSortArgs](QueryProcessor[_TData, SortingQuery, _TResult, _TSortArgs]): ...
