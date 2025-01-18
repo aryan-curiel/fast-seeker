@@ -14,14 +14,9 @@ PYMONGO_DIRECTION_MAP = {
 PyMongoSortArgs = list[tuple[str, Literal[1] | Literal[-1]]]
 
 
-def pymongo_sorting_translator(query: SortingQuery) -> PyMongoSortArgs:
-    return [(entry.key, PYMONGO_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
-
-
-def pymongo_sorting_executor(data: Cursor, order: PyMongoSortArgs) -> Cursor:
-    return data.sort(order)
-
-
 class PyMongoSorter(Sorter[Cursor, Cursor, PyMongoSortArgs]):
-    def __init__(self):
-        super().__init__(translator=pymongo_sorting_translator, executor=pymongo_sorting_executor)
+    def translate(self, query: SortingQuery) -> PyMongoSortArgs:
+        return [(entry.key, PYMONGO_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
+
+    def execute(self, data: Cursor, order: PyMongoSortArgs) -> Cursor:
+        return data.sort(order)

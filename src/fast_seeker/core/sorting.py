@@ -1,3 +1,4 @@
+from abc import ABC
 from collections.abc import Generator
 from dataclasses import dataclass
 from enum import StrEnum
@@ -46,4 +47,4 @@ class SortingQuery(BaseModel):
         return (SortingQuery._parse_entry(order) for order in self.order_by)
 
 
-class Sorter[_TData, _TResult, _TSortArgs](QueryProcessor[_TData, SortingQuery, _TResult, _TSortArgs]): ...
+class Sorter[_TData, _TResult, _TSortArgs](QueryProcessor[_TData, SortingQuery, _TResult, _TSortArgs], ABC): ...

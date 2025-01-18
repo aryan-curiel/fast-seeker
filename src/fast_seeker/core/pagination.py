@@ -1,3 +1,5 @@
+from abc import ABC
+
 from pydantic import BaseModel, Field
 
 from fast_seeker.core.base import QueryProcessor
@@ -14,7 +16,7 @@ class LimitOffsetQuery(BaseModel):
 
 
 class LimitOffsetPaginator[_TData, _TResult, _TPageArgs](
-    QueryProcessor[_TData, LimitOffsetQuery, _TResult, _TPageArgs]
+    QueryProcessor[_TData, LimitOffsetQuery, _TResult, _TPageArgs], ABC
 ): ...
 
 
@@ -24,5 +26,5 @@ class PageNumberQuery(BaseModel):
 
 
 class PageNumberPaginator[_TData, _TResult, _TPageArgs](
-    QueryProcessor[_TData, PageNumberQuery, _TResult, _TPageArgs]
+    QueryProcessor[_TData, PageNumberQuery, _TResult, _TPageArgs], ABC
 ): ...

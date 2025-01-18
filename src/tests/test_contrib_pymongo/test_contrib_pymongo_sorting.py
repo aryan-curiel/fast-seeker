@@ -1,6 +1,6 @@
 import pytest
 
-from fast_seeker.contrib.pymongo.sorting import PyMongoSorter, pymongo_sorting_executor, pymongo_sorting_translator
+from fast_seeker.contrib.pymongo.sorting import PyMongoSorter
 
 
 @pytest.mark.parametrize(
@@ -11,8 +11,8 @@ from fast_seeker.contrib.pymongo.sorting import PyMongoSorter, pymongo_sorting_e
         (["key1"], [("key1", 1)]),
     ],
 )
-def test_pymongo_sorting_translator(expected, sorting_query):
-    translated_query = pymongo_sorting_translator(sorting_query)
+def test_pymongo_sorter_translate(expected, sorting_query):
+    translated_query = PyMongoSorter().translate(sorting_query)
     assert translated_query == expected
 
 
@@ -23,8 +23,8 @@ def test_pymongo_sorting_translator(expected, sorting_query):
         ([("key1", 1)], [("key1", 1)]),
     ],
 )
-def test_pymongo_sorting_executor(translated_order, expected_expressions, pymongo_cursor):
-    cursor = pymongo_sorting_executor(pymongo_cursor, translated_order)
+def test_pymongo_sorter_execute(translated_order, expected_expressions, pymongo_cursor):
+    cursor = PyMongoSorter().execute(pymongo_cursor, translated_order)
     cursor.sort.assert_called_once_with(expected_expressions)
 
 
