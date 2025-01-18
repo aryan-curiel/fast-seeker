@@ -16,7 +16,7 @@ def beanie_pagination_executor(data: FindMany, args: LimitOffsetQuery) -> FindMa
 
 
 class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, FindMany, LimitOffsetQuery]):
-    def translate(self, query: LimitOffsetQuery) -> LimitOffsetQuery:
+    def translate(self, data: FindMany, query: LimitOffsetQuery) -> LimitOffsetQuery:
         return query
 
     def execute(self, data: FindMany, args: LimitOffsetQuery) -> FindMany:
@@ -24,7 +24,7 @@ class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, FindMany, LimitO
 
 
 class BeaniePageNumberPaginator(PageNumberPaginator[FindMany, FindMany, LimitOffsetQuery]):
-    def translate(self, query: PageNumberQuery) -> LimitOffsetQuery:
+    def translate(self, data: FindMany, query: PageNumberQuery) -> LimitOffsetQuery:
         return LimitOffsetQuery(limit=query.size, offset=(query.page - 1) * query.size)
 
     def execute(self, data: FindMany, args: LimitOffsetQuery) -> FindMany:

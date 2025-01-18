@@ -11,8 +11,8 @@ from fast_seeker.contrib.pymongo.sorting import PyMongoSorter
         (["key1"], [("key1", 1)]),
     ],
 )
-def test_pymongo_sorter_translate(expected, sorting_query):
-    translated_query = PyMongoSorter().translate(sorting_query)
+def test_pymongo_sorter_translate(expected, sorting_query, pymongo_cursor):
+    translated_query = PyMongoSorter().translate(pymongo_cursor, sorting_query)
     assert translated_query == expected
 
 

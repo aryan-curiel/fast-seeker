@@ -15,10 +15,10 @@ from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
     ],
 )
 def test_pymongo_paginator_translate__should_return_correct_query(
-    paginator_class, query, expected_limit, expected_offset
+    paginator_class, query, expected_limit, expected_offset, pymongo_cursor
 ):
     paginator = paginator_class()
-    result = paginator.translate(query)
+    result = paginator.translate(pymongo_cursor, query)
     assert result.limit == expected_limit
     assert result.offset == expected_offset
 

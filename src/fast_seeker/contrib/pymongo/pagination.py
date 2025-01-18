@@ -4,7 +4,7 @@ from fast_seeker.core.pagination import LimitOffsetPaginator, LimitOffsetQuery, 
 
 
 class PyMongoLimitOffsetPaginator(LimitOffsetPaginator[Cursor, Cursor, LimitOffsetQuery]):
-    def translate(self, query: LimitOffsetQuery) -> LimitOffsetQuery:
+    def translate(self, data: Cursor, query: LimitOffsetQuery) -> LimitOffsetQuery:
         return query
 
     def execute(self, data: Cursor, args: LimitOffsetQuery) -> Cursor:
@@ -12,7 +12,7 @@ class PyMongoLimitOffsetPaginator(LimitOffsetPaginator[Cursor, Cursor, LimitOffs
 
 
 class PyMongoPageNumberPaginator(PageNumberPaginator[Cursor, Cursor, LimitOffsetQuery]):
-    def translate(self, query: PageNumberQuery) -> LimitOffsetQuery:
+    def translate(self, data: Cursor, query: PageNumberQuery) -> LimitOffsetQuery:
         return LimitOffsetQuery(limit=query.size, offset=(query.page - 1) * query.size)
 
     def execute(self, data: Cursor, args: LimitOffsetQuery) -> Cursor:

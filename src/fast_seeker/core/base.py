@@ -19,11 +19,11 @@ class QueryExecutor[_TData, _TArgs, _TResult](ABC):
 
 class QueryProcessor[_TData, _TQuery, _TResult, _TArgs](ABC):
     def __call__(self, data: _TData, query: _TQuery) -> _TResult:
-        translated_query = self.translate(query)
+        translated_query = self.translate(data, query)
         return self.execute(data, translated_query)
 
     @abstractmethod
-    def translate(self, query: _TQuery) -> _TArgs: ...
+    def translate(self, data: _TData, query: _TQuery) -> _TArgs: ...
 
     @abstractmethod
     def execute(self, data: _TData, args: _TArgs) -> _TResult: ...

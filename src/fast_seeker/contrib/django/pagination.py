@@ -4,7 +4,7 @@ from fast_seeker.core.pagination import LimitOffsetPaginator, LimitOffsetQuery, 
 
 
 class QuerySetLimitOffsetPaginator(LimitOffsetPaginator[QuerySet, QuerySet, slice]):
-    def translate(self, query: LimitOffsetQuery) -> slice:
+    def translate(self, data: QuerySet, query: LimitOffsetQuery) -> slice:
         return slice(query.offset, query.offset + query.limit)
 
     def execute(self, data: QuerySet, args: slice) -> QuerySet:
@@ -12,7 +12,7 @@ class QuerySetLimitOffsetPaginator(LimitOffsetPaginator[QuerySet, QuerySet, slic
 
 
 class QuerySetPageNumberPaginator(PageNumberPaginator[QuerySet, QuerySet, slice]):
-    def translate(self, query: PageNumberQuery) -> slice:
+    def translate(self, data: QuerySet, query: PageNumberQuery) -> slice:
         return slice((query.page - 1) * query.size, query.page * query.size)
 
     def execute(self, data: QuerySet, args: slice) -> QuerySet:

@@ -19,7 +19,7 @@ from .utils import DummyFindMany
 def test_beanie_paginator_translate__should_return_correct_query(
     paginator_class, query, expected_limit, expected_offset
 ):
-    result = paginator_class().translate(query)
+    result = paginator_class().translate(DummyFindMany(), query)
     assert result.limit == expected_limit
     assert result.offset == expected_offset
 

@@ -13,7 +13,7 @@ BeanieSortArgs = list[tuple[str, BeanieSortDirection]]
 
 
 class BeanieSorter(Sorter[FindMany, FindMany, BeanieSortArgs]):
-    def translate(self, query: SortingQuery) -> BeanieSortArgs:
+    def translate(self, data: FindMany, query: SortingQuery) -> BeanieSortArgs:
         return [(entry.key, BEANIE_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
 
     def execute(self, data: FindMany, order: BeanieSortArgs) -> FindMany:

@@ -14,7 +14,7 @@ from .utils import DummyFindMany
     ],
 )
 def test_beanie_sorter_translate(expected, sorting_query):
-    translated_query = BeanieSorter().translate(sorting_query)
+    translated_query = BeanieSorter().translate(DummyFindMany(), sorting_query)
     assert translated_query == expected
 
 

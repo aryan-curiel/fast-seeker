@@ -12,8 +12,8 @@ from fast_seeker.contrib.django.sorting import QuerySetSorter
         (["key1"], ["key1"]),
     ],
 )
-def test_django_sorting_translate(expected, sorting_query):
-    translated_query = QuerySetSorter().translate(sorting_query)
+def test_django_sorting_translate(expected, sorting_query, mocker):
+    translated_query = QuerySetSorter().translate(mocker.MagicMock(spec=QuerySet), sorting_query)
     assert translated_query == expected
 
 

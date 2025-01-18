@@ -15,7 +15,7 @@ PyMongoSortArgs = list[tuple[str, Literal[1] | Literal[-1]]]
 
 
 class PyMongoSorter(Sorter[Cursor, Cursor, PyMongoSortArgs]):
-    def translate(self, query: SortingQuery) -> PyMongoSortArgs:
+    def translate(self, data: Cursor, query: SortingQuery) -> PyMongoSortArgs:
         return [(entry.key, PYMONGO_DIRECTION_MAP[entry.direction]) for entry in query.parsed]
 
     def execute(self, data: Cursor, order: PyMongoSortArgs) -> Cursor:
