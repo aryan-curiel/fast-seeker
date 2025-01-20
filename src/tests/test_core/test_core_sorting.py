@@ -26,7 +26,11 @@ def test_order_entry_desc__should_return_order_entry_with_desc_direction():
 
 @pytest.mark.parametrize(
     "key_input,expected_entry",
-    [("key", OrderEntry.asc("key")), ("-key", OrderEntry.desc("key")), ("+key", OrderEntry.asc("key"))],
+    [
+        pytest.param("key", OrderEntry.asc("key"), id="ascending"),
+        pytest.param("-key", OrderEntry.desc("key"), id="descending"),
+        pytest.param("+key", OrderEntry.asc("key"), id="explicit_ascending"),
+    ],
 )
 def test_sorting_model_parse_entry__should_return_expected_entry_when_valid_value(key_input, expected_entry):
     entry = SortingQuery._parse_entry(key_input)

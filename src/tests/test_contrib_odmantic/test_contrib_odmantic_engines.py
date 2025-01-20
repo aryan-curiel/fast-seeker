@@ -43,8 +43,8 @@ def test_odmantic_find_query_builder_limit(mocker):
 @pytest.mark.parametrize(
     "engine_class",
     [
-        AIOEngine,
-        SyncEngine,
+        pytest.param(AIOEngine, id="aioengine"),
+        pytest.param(SyncEngine, id="syncengine"),
     ],
 )
 def test_odmantic_find_query_builder_find__should_be_called_with_query_builder_fields(engine_class, mocker):
@@ -62,8 +62,8 @@ def test_odmantic_find_query_builder_find__should_be_called_with_query_builder_f
 @pytest.mark.parametrize(
     "engine_class",
     [
-        AIOEngine,
-        SyncEngine,
+        pytest.param(AIOEngine, id="aioengine"),
+        pytest.param(SyncEngine, id="syncengine"),
     ],
 )
 def test_odmantic_find_query_builder_find__should_be_called_with_args_if_passed(engine_class, mocker):

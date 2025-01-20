@@ -11,8 +11,8 @@ from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
 @pytest.mark.parametrize(
     "paginator_class, query, expected_slice",
     [
-        (QuerySetLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), slice(2, 3)),
-        (QuerySetPageNumberPaginator, PageNumberQuery(page=1, size=2), slice(0, 2)),
+        pytest.param(QuerySetLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), slice(2, 3), id="limit_offset"),
+        pytest.param(QuerySetPageNumberPaginator, PageNumberQuery(page=1, size=2), slice(0, 2), id="page_number"),
     ],
 )
 def test_django_paginator_translate__should_return_slice(paginator_class, query, expected_slice, mocker):
@@ -24,8 +24,8 @@ def test_django_paginator_translate__should_return_slice(paginator_class, query,
 @pytest.mark.parametrize(
     "paginator_class, query, expected_slice",
     [
-        (QuerySetLimitOffsetPaginator, slice(2, 3), slice(2, 3)),
-        (QuerySetPageNumberPaginator, slice(0, 2), slice(0, 2)),
+        pytest.param(QuerySetLimitOffsetPaginator, slice(2, 3), slice(2, 3), id="limit_offset"),
+        pytest.param(QuerySetPageNumberPaginator, slice(0, 2), slice(0, 2), id="page_number"),
     ],
 )
 def test_django_paginator_executor__should_return_data_with_slice(paginator_class, query, expected_slice, mocker):

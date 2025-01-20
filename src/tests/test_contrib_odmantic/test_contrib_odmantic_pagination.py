@@ -13,8 +13,8 @@ from .utils import DummyDocument
 @pytest.mark.parametrize(
     "paginator_class, query, expected_limit, expected_offset",
     [
-        (ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
-        (ODManticPageNumberPaginator, PageNumberQuery(page=1, size=2), 2, 0),
+        pytest.param(ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="limit_offset"),
+        pytest.param(ODManticPageNumberPaginator, PageNumberQuery(page=1, size=2), 2, 0, id="page_number"),
     ],
 )
 def test_pymongo_paginator_translate__should_return_correct_query(
@@ -29,8 +29,8 @@ def test_pymongo_paginator_translate__should_return_correct_query(
 @pytest.mark.parametrize(
     "paginator_class, query, expected_limit, expected_offset",
     [
-        (ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
-        (ODManticPageNumberPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
+        pytest.param(ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="limit_offset"),
+        pytest.param(ODManticPageNumberPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="page_number"),
     ],
 )
 def test_pymongo_paginator_execute__should_return_data_with_limit_and_offset(

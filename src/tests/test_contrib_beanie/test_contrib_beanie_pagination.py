@@ -12,8 +12,8 @@ from .utils import DummyFindMany
 @pytest.mark.parametrize(
     "paginator_class, query, expected_limit, expected_offset",
     [
-        (BeanieLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
-        (BeaniePageNumberPaginator, PageNumberQuery(page=1, size=2), 2, 0),
+        pytest.param(BeanieLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="limit_offset"),
+        pytest.param(BeaniePageNumberPaginator, PageNumberQuery(page=1, size=2), 2, 0, id="page_number"),
     ],
 )
 def test_beanie_paginator_translate__should_return_correct_query(
@@ -27,8 +27,8 @@ def test_beanie_paginator_translate__should_return_correct_query(
 @pytest.mark.parametrize(
     "paginator_class, query, expected_limit, expected_offset",
     [
-        (BeanieLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
-        (BeaniePageNumberPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
+        pytest.param(BeanieLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="limit_offset"),
+        pytest.param(BeaniePageNumberPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2, id="page_number"),
     ],
 )
 def test_beanie_paginator_executor__should_return_data_with_limit_and_offset(

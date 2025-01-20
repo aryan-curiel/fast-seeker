@@ -10,9 +10,9 @@ from .utils import DummyDocument
 @pytest.mark.parametrize(
     "sorting_query, expected",
     [
-        (SortingQuery(order_by=["-field1"]), ({"field1": -1},)),
-        (SortingQuery(order_by=["+field1"]), ({"field1": 1},)),
-        (SortingQuery(order_by=["field1"]), ({"field1": 1},)),
+        pytest.param(SortingQuery(order_by=["-field1"]), ({"field1": -1},), id="descending"),
+        pytest.param(SortingQuery(order_by=["+field1"]), ({"field1": 1},), id="ascending_explicit"),
+        pytest.param(SortingQuery(order_by=["field1"]), ({"field1": 1},), id="ascending"),
     ],
 )
 def test_odmantic_sorter_translate(sorting_query, expected, mocker):
@@ -24,8 +24,8 @@ def test_odmantic_sorter_translate(sorting_query, expected, mocker):
 @pytest.mark.parametrize(
     "translated_order, expected_expressions",
     [
-        (({"field1": -1},), ({"field1": -1},)),
-        (({"field1": 1},), ({"field1": 1},)),
+        pytest.param(({"field1": -1},), ({"field1": -1},), id="descending"),
+        pytest.param(({"field1": 1},), ({"field1": 1},), id="ascending"),
     ],
 )
 def test_odmantic_sorter_execute(translated_order, expected_expressions, mocker):

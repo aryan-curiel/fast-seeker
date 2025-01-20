@@ -8,9 +8,9 @@ from fast_seeker.core.sorting import SortingQuery
 @pytest.mark.parametrize(
     "sorting_query, expected",
     [
-        (SortingQuery(order_by=["-field1"]), ["-field1"]),
-        (SortingQuery(order_by=["+field1"]), ["+field1"]),
-        (SortingQuery(order_by=["field1"]), ["field1"]),
+        pytest.param(SortingQuery(order_by=["-field1"]), ["-field1"], id="descending"),
+        pytest.param(SortingQuery(order_by=["+field1"]), ["+field1"], id="ascending_explicit"),
+        pytest.param(SortingQuery(order_by=["field1"]), ["field1"], id="ascending"),
     ],
 )
 def test_django_sorting_translate(sorting_query, expected, mocker):
@@ -21,8 +21,8 @@ def test_django_sorting_translate(sorting_query, expected, mocker):
 @pytest.mark.parametrize(
     "translated_order, expected_expressions",
     [
-        ([("field1", -1)], [("field1", -1)]),
-        ([("field1", 1)], [("field1", 1)]),
+        pytest.param([("field1", -1)], [("field1", -1)], id="descending"),
+        pytest.param([("field1", 1)], [("field1", 1)], id="ascending"),
     ],
 )
 def test_django_sorting_execute(translated_order, expected_expressions, mocker):
