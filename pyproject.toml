@@ -21,6 +21,12 @@ odmantic = [
 django = [
     "django>=4.2",
 ]
+pymongo = [
+    "pymongo>=4.9.2",
+]
+motor = [
+    "motor>=3.6.0",
+]
 
 [dependency-groups]
 dev = [
