@@ -1,19 +1,20 @@
 import pytest
 
 from fast_seeker.contrib.beanie.sorting import BeanieSorter
+from fast_seeker.core.sorting import SortingQuery
 
 from .utils import DummyFindMany
 
 
 @pytest.mark.parametrize(
-    "order_by, expected",
+    "sorting_query, expected",
     [
-        (["-key1"], [("key1", -1)]),
-        (["+key1"], [("key1", 1)]),
-        (["key1"], [("key1", 1)]),
+        (SortingQuery(order_by=["-field1"]), [("field1", -1)]),
+        (SortingQuery(order_by=["+field1"]), [("field1", 1)]),
+        (SortingQuery(order_by=["field1"]), [("field1", 1)]),
     ],
 )
-def test_beanie_sorter_translate(expected, sorting_query):
+def test_beanie_sorter_translate(sorting_query, expected):
     translated_query = BeanieSorter().translate(DummyFindMany(), sorting_query)
     assert translated_query == expected
 
@@ -21,8 +22,8 @@ def test_beanie_sorter_translate(expected, sorting_query):
 @pytest.mark.parametrize(
     "translated_order, expected_expressions",
     [
-        ([("key1", -1)], [("key1", -1)]),
-        ([("key1", 1)], [("key1", 1)]),
+        ([("field1", -1)], [("field1", -1)]),
+        ([("field1", 1)], [("field1", 1)]),
     ],
 )
 def test_beanie_sorter_execute(translated_order, expected_expressions):

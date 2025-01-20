@@ -2,7 +2,7 @@ from fast_seeker.core.base import QueryProcessor
 
 
 class DummyQueryProcessor(QueryProcessor):
-    def translate(self, query):
+    def translate(self, data, query):
         return query
 
     def execute(self, data, args):

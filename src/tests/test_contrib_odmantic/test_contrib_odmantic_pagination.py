@@ -1,15 +1,42 @@
-from fast_seeker.contrib.odmantic.pagination import ODManticLimitOffsetTranslator, ODManticPageNumberTranslator
+import pytest
+
+from fast_seeker.contrib.odmantic.engines import ODManticFindQueryBuilder
+from fast_seeker.contrib.odmantic.pagination import (
+    ODManticLimitOffsetPaginator,
+    ODManticPageNumberPaginator,
+)
 from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
 
-
-def test_odmantic_limit_offset_translator__should_return_same_query():
-    query = LimitOffsetQuery(limit=1, offset=2)
-    result = ODManticLimitOffsetTranslator(query)
-    assert result == query
+from .utils import DummyDocument
 
 
-def test_odmantic_page_number_translator__should_return_limit_offset_query():
-    query = PageNumberQuery(page=1, size=2)
-    result = ODManticPageNumberTranslator(query)
-    assert result.limit == query.size
-    assert result.offset == (query.page - 1) * query.size
+@pytest.mark.parametrize(
+    "paginator_class, query, expected_limit, expected_offset",
+    [
+        (ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
+        (ODManticPageNumberPaginator, PageNumberQuery(page=1, size=2), 2, 0),
+    ],
+)
+def test_pymongo_paginator_translate__should_return_correct_query(
+    paginator_class, query, expected_limit, expected_offset, mocker
+):
+    query_builder = ODManticFindQueryBuilder(mocker.MagicMock(), DummyDocument)
+    translated_query = paginator_class().translate(query_builder, query)
+    assert translated_query.limit == expected_limit
+    assert translated_query.offset == expected_offset
+
+
+@pytest.mark.parametrize(
+    "paginator_class, query, expected_limit, expected_offset",
+    [
+        (ODManticLimitOffsetPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
+        (ODManticPageNumberPaginator, LimitOffsetQuery(limit=1, offset=2), 1, 2),
+    ],
+)
+def test_pymongo_paginator_execute__should_return_data_with_limit_and_offset(
+    paginator_class, query, expected_limit, expected_offset, mocker
+):
+    query_builder = ODManticFindQueryBuilder(mocker.MagicMock(), DummyDocument)
+    returned_query_builder = paginator_class().execute(query_builder, query)
+    assert returned_query_builder._limit == expected_limit
+    assert returned_query_builder._skip == expected_offset

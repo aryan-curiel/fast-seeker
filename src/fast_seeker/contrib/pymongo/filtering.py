@@ -7,7 +7,7 @@ from pymongo.cursor import Cursor
 from fast_seeker.core.filtering import Filterer, FilterModel
 
 
-class PyMongoFilterer(Filterer[Collection, Cursor, Iterable[dict[str, Any]]]):
+class PyMongoFilterer(Filterer[Collection, Cursor, dict[str, Any]]):
     def default_resolver(
         self, data: Collection, query: FilterModel, field_name: str, field_value: Any
     ) -> dict[str, Any]:

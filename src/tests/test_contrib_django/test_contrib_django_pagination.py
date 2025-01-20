@@ -17,7 +17,7 @@ from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
 )
 def test_django_paginator_translate__should_return_slice(paginator_class, query, expected_slice, mocker):
     paginator = paginator_class()
-    result = paginator.translate(mocker.MagicMock(spec=QuerySet).query)
+    result = paginator.translate(mocker.MagicMock(spec=QuerySet), query)
     assert result == expected_slice
 
 

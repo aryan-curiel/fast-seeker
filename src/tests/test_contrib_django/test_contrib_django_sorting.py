@@ -2,17 +2,18 @@ import pytest
 from django.db.models import QuerySet
 
 from fast_seeker.contrib.django.sorting import QuerySetSorter
+from fast_seeker.core.sorting import SortingQuery
 
 
 @pytest.mark.parametrize(
-    "order_by, expected",
+    "sorting_query, expected",
     [
-        (["-key1"], ["-key1"]),
-        (["+key1"], ["+key1"]),
-        (["key1"], ["key1"]),
+        (SortingQuery(order_by=["-field1"]), ["-field1"]),
+        (SortingQuery(order_by=["+field1"]), ["+field1"]),
+        (SortingQuery(order_by=["field1"]), ["field1"]),
     ],
 )
-def test_django_sorting_translate(expected, sorting_query, mocker):
+def test_django_sorting_translate(sorting_query, expected, mocker):
     translated_query = QuerySetSorter().translate(mocker.MagicMock(spec=QuerySet), sorting_query)
     assert translated_query == expected
 
@@ -20,8 +21,8 @@ def test_django_sorting_translate(expected, sorting_query, mocker):
 @pytest.mark.parametrize(
     "translated_order, expected_expressions",
     [
-        ([("key1", -1)], [("key1", -1)]),
-        ([("key1", 1)], [("key1", 1)]),
+        ([("field1", -1)], [("field1", -1)]),
+        ([("field1", 1)], [("field1", 1)]),
     ],
 )
 def test_django_sorting_execute(translated_order, expected_expressions, mocker):

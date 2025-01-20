@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Any
 
 from odmantic.query import QueryExpression
@@ -15,5 +16,5 @@ class ODManticFilterer(Filterer[ODManticFindQueryBuilder, ODManticFindQueryBuild
     ) -> ODMQueryExpressions:
         return getattr(data.model, field_name) == field_value
 
-    def execute(self, data: ODManticFindQueryBuilder, args: ODMQueryExpressions) -> ODManticFindQueryBuilder:
-        return data.filter(*args)
+    def execute(self, data: ODManticFindQueryBuilder, args: Iterable[ODMQueryExpressions]) -> ODManticFindQueryBuilder:
+        return data.filter(args)
