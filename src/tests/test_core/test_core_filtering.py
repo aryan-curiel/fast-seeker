@@ -68,11 +68,11 @@ def test_filterer_translate_field__should_use_custom_resolver_if_custom():
 
 def test_filterer_translate__should_ignore_none_filter_expressions():
     translator = DummyFilterQueryTranslatorWithCustomFieldTranslatorNone()
-    translated = list(translator(query=DummyFilter(field="value", another_field="another_value")))
+    translated = list(translator.translate(query=DummyFilter(field="value", another_field="another_value")))
     assert translated == [{"another_field": "another_value"}]
 
 
 def test_filter_query_base_translator__should_translate_all_fields():
     translator = DummyFilterQueryTranslator()
-    translated = list(translator(query=DummyFilter(field="value", another_field="another_value")))
+    translated = list(translator.translate(query=DummyFilter(field="value", another_field="another_value")))
     assert translated == [{"field": "value"}, {"another_field": "another_value"}]

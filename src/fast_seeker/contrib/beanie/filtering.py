@@ -17,7 +17,7 @@ class BeanieFilterQueryTranslator(FilterQueryBaseTranslator[BeanieFilterEntry]):
 
 
 class BeanieFilterQueryExecutor(QueryExecutor[FindMany, Iterable[BeanieFilterEntry]]):
-    def __call__(self, *, source: FindMany, translated_query: Iterable[BeanieFilterEntry], **kwargs) -> FindMany:
+    def execute(self, *, source: FindMany, translated_query: Iterable[BeanieFilterEntry], **kwargs) -> FindMany:
         return source.find(*translated_query)
 
 

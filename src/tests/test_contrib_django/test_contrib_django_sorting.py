@@ -15,7 +15,7 @@ from fast_seeker.core.sorting import SortingQuery
 )
 def test_django_sorting_translator(sorting_query, expected, mocker):
     translator = DjangoSortingQueryTranslator()
-    translated_query = list(translator(query=sorting_query))
+    translated_query = list(translator.translate(query=sorting_query))
     assert translated_query == expected
 
 
@@ -30,7 +30,7 @@ def test_django_sorting_executor(translated_order, mocker):
     mock_queryset = mocker.MagicMock(spec=QuerySet)
     executor = DjangoSortingQueryExecutor()
 
-    executor(source=mock_queryset, translated_query=translated_order)
+    executor.execute(source=mock_queryset, translated_query=translated_order)
     mock_queryset.order_by.assert_called_once_with(*translated_order)
 
 

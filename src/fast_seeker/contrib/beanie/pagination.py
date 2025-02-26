@@ -17,17 +17,17 @@ class BeanieQueryPage(TypedDict):
 
 
 class BeanieLimitOffsetQueryTranslator(QueryTranslator[LimitOffsetQuery, BeanieQueryPage]):
-    def __call__(self, *, query: LimitOffsetQuery, **kwargs) -> BeanieQueryPage:
+    def translate(self, *, query: LimitOffsetQuery, **kwargs) -> BeanieQueryPage:
         return BeanieQueryPage(limit=query.limit, skip=query.offset)
 
 
 class BeaniePageNumberQueryTranslator(QueryTranslator[PageNumberQuery, BeanieQueryPage]):
-    def __call__(self, *, query: PageNumberQuery, **kwargs) -> BeanieQueryPage:
+    def translate(self, *, query: PageNumberQuery, **kwargs) -> BeanieQueryPage:
         return BeanieQueryPage(limit=query.size, skip=(query.page - 1) * query.size)
 
 
 class BeaniePaginationExecutor(QueryExecutor[FindMany, BeanieQueryPage]):
-    def __call__(self, *, source: FindMany, translated_query: BeanieQueryPage, **kwargs) -> FindMany:
+    def execute(self, *, source: FindMany, translated_query: BeanieQueryPage, **kwargs) -> FindMany:
         return source.limit(translated_query["limit"]).skip(translated_query["skip"])
 
 

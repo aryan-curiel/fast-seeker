@@ -12,7 +12,7 @@ def test_beanie_filter_query_translator_default_field_translator__should_return_
 def test_beanie_filter_query_executor__should_return_filtered_queryset():
     executor = BeanieFilterQueryExecutor()
     expressions = [{"field": "value"}]
-    result = executor(source=DummyFindMany(), translated_query=expressions)
+    result = executor.execute(source=DummyFindMany(), translated_query=expressions)
     assert result.find_expressions == expressions
 
 

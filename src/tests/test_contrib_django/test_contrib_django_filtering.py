@@ -13,7 +13,7 @@ def test_django_filter_query_executor__should_return_filtered_queryset(mocker):
     executor = DjangoFilterQueryExecutor()
     mock_queryset = mocker.MagicMock(spec=QuerySet)
     q_object = Q(field="value")
-    executor(source=mock_queryset, translated_query=[q_object])
+    executor.execute(source=mock_queryset, translated_query=[q_object])
     mock_queryset.filter.assert_called_once_with(q_object)
 
 

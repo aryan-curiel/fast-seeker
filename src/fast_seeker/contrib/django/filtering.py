@@ -13,7 +13,7 @@ class DjangoFilterQueryTranslator(FilterQueryBaseTranslator[Q]):
 
 
 class DjangoFilterQueryExecutor(QueryExecutor[QuerySet, Q]):
-    def __call__(self, *, source: QuerySet, translated_query: Iterable[Q], **kwargs) -> QuerySet:
+    def execute(self, *, source: QuerySet, translated_query: Iterable[Q], **kwargs) -> QuerySet:
         return source.filter(*translated_query)
 
 

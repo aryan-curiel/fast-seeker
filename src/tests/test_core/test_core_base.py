@@ -2,12 +2,12 @@ from fast_seeker.core.base import QueryExecutor, QueryProcessor, QueryTranslator
 
 
 class DummyQueryTranslator(QueryTranslator):
-    def __call__(self, *, query, **kwargs):
+    def translate(self, *, query, **kwargs):
         return query
 
 
 class DummyQueryExecutor(QueryExecutor):
-    def __call__(self, *, source, translated_query, **kwargs):
+    def execute(self, *, source, translated_query, **kwargs):
         return source
 
 

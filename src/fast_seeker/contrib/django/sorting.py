@@ -9,14 +9,14 @@ DjangoTranslatedQuery = Iterable[str]
 
 
 class DjangoSortingQueryTranslator(SortingQueryBaseTranslator[DjangoTranslatedQuery]):
-    def __call__(self, *, query: SortingQuery, **kwargs) -> DjangoTranslatedQuery:
+    def translate(self, *, query: SortingQuery, **kwargs) -> DjangoTranslatedQuery:
         for entry in self._translate_as_entries(query, **kwargs):
             direction_prefix = "-" if entry.direction == SortDirection.DESC else ""
             yield f"{direction_prefix}{entry.key}"
 
 
 class DjangoSortingQueryExecutor(QueryExecutor[QuerySet, DjangoTranslatedQuery]):
-    def __call__(self, *, source: QuerySet, translated_query: DjangoTranslatedQuery, **kwargs):
+    def execute(self, *, source: QuerySet, translated_query: DjangoTranslatedQuery, **kwargs):
         return source.order_by(*translated_query)
 
 

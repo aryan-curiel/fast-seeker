@@ -35,7 +35,7 @@ class FilterQueryBaseTranslator(
         field_translator = custom_field_translator or self._default_field_translator
         return field_translator(query, field_name, field_value, **kwargs)
 
-    def __call__(self, *, query: FilterQuery, **kwargs) -> Iterable[_TFilterExpression]:
+    def translate(self, *, query: FilterQuery, **kwargs) -> Iterable[_TFilterExpression]:
         for field_name in query.model_fields:
             filter_expression = self._translate_field(query, field_name, **kwargs)
             if filter_expression:

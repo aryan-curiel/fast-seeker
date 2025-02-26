@@ -25,7 +25,7 @@ def test_order_entry_desc__should_return_order_entry_with_desc_direction():
 
 
 class DummySortingQueryTranslator(SortingQueryBaseTranslator):
-    def __call__(self, *, query, **kwargs):
+    def translate(self, *, query, **kwargs):
         return self._translate_as_entries(query)
 
 
@@ -115,7 +115,7 @@ def test_sorting_query_translate__returns_expected_entries():
     translator = DummySortingQueryTranslator()
     query = SortingQuery(order_by=["key1", "-key2", "+key3"])
 
-    result = translator(query=query)
+    result = translator.translate(query=query)
     assert list(result) == [
         OrderEntry.asc("key1"),
         OrderEntry.desc("key2"),

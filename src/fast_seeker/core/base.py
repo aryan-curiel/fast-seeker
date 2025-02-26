@@ -10,12 +10,12 @@ _TQuery = TypeVar("_TQuery", bound=BaseModel)
 
 class QueryTranslator(ABC, Generic[_TQuery, _TTranslationResult]):
     @abstractmethod
-    def __call__(self, *, query: _TQuery, **kwargs) -> _TTranslationResult: ...
+    def translate(self, *, query: _TQuery, **kwargs) -> _TTranslationResult: ...
 
 
 class QueryExecutor(ABC, Generic[_TData, _TTranslationResult]):
     @abstractmethod
-    def __call__(self, *, source: _TData, translated_query: _TTranslationResult, **kwargs) -> _TData: ...
+    def execute(self, *, source: _TData, translated_query: _TTranslationResult, **kwargs) -> _TData: ...
 
 
 class QueryProcessor(ABC, Generic[_TQuery, _TTranslationResult, _TData]):
@@ -23,5 +23,5 @@ class QueryProcessor(ABC, Generic[_TQuery, _TTranslationResult, _TData]):
     executor: QueryExecutor[_TData, _TTranslationResult]
 
     def __call__(self, *, source: _TData, query: _TQuery, **kwargs) -> _TData:
-        translated_query = self.translator(query=query, **kwargs)
-        return self.executor(source=source, translated_query=translated_query, **kwargs)
+        translated_query = self.translator.translate(query=query, **kwargs)
+        return self.executor.execute(source=source, translated_query=translated_query, **kwargs)

@@ -16,7 +16,7 @@ from .utils import DummyFindMany
 )
 def test_beanie_sorter_translator(sorting_query, expected):
     translator = BeanieSortingQueryTranslator()
-    translated_query = list(translator(query=sorting_query))
+    translated_query = list(translator.translate(query=sorting_query))
     assert translated_query == expected
 
 
@@ -29,7 +29,7 @@ def test_beanie_sorter_translator(sorting_query, expected):
 )
 def test_beanie_sorter_executor(translated_order, expected_expressions):
     executor = BeanieSortingQueryExecutor()
-    result = executor(source=DummyFindMany(), translated_query=translated_order)
+    result = executor.execute(source=DummyFindMany(), translated_query=translated_order)
     assert result.sort_expressions == expected_expressions
 
 

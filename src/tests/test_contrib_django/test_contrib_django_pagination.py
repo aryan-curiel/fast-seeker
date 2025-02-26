@@ -22,7 +22,7 @@ from fast_seeker.core.pagination import LimitOffsetQuery, PageNumberQuery
 )
 def test_django_pagination_translators(translator_class, query, expected_slice, mocker):
     translator = translator_class()
-    result = translator(query=query)
+    result = translator.translate(query=query)
     assert result == expected_slice
 
 
@@ -30,7 +30,7 @@ def test_django_pagination_executor__should_apply_slice(mocker):
     executor = DjangoPaginationExecutor()
     mock_queryset = mocker.MagicMock(spec=QuerySet)
     translated_query_slice = slice(2, 3)
-    executor(source=mock_queryset, translated_query=translated_query_slice)
+    executor.execute(source=mock_queryset, translated_query=translated_query_slice)
     mock_queryset.__getitem__.assert_called_once_with(translated_query_slice)
 
 
