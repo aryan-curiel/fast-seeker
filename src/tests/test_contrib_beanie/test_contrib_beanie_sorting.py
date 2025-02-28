@@ -1,39 +1,40 @@
 import pytest
 
-from fast_seeker.contrib.beanie.sorting import BeanieSorter, BeanieSortingQueryExecutor, BeanieSortingQueryTranslator
-from fast_seeker.core.sorting import SortingQuery
+from fast_seeker.contrib.beanie.sorting import Sorter, SortingQuery
+from fast_seeker.core.sorting import OrderEntry
 
 from .utils import DummyFindMany
 
-
-@pytest.mark.parametrize(
-    "sorting_query, expected",
-    [
-        pytest.param(SortingQuery(order_by=["-field1"]), [("field1", -1)], id="descending"),
-        pytest.param(SortingQuery(order_by=["+field1"]), [("field1", 1)], id="ascending_explicit"),
-        pytest.param(SortingQuery(order_by=["field1"]), [("field1", 1)], id="ascending"),
-    ],
-)
-def test_beanie_sorter_translator(sorting_query, expected):
-    translator = BeanieSortingQueryTranslator()
-    translated_query = list(translator.translate(query=sorting_query))
-    assert translated_query == expected
+############################
+## Tests for SortingQuery ##
+############################
 
 
 @pytest.mark.parametrize(
-    "translated_order, expected_expressions",
+    "entry, expected",
     [
-        pytest.param([("field1", -1)], [("field1", -1)], id="descending"),
-        pytest.param([("field1", 1)], [("field1", 1)], id="ascending"),
+        pytest.param(OrderEntry.desc("field1"), ("field1", -1), id="descending"),
+        pytest.param(OrderEntry.asc("field1"), ("field1", 1), id="ascending"),
     ],
 )
-def test_beanie_sorter_executor(translated_order, expected_expressions):
-    executor = BeanieSortingQueryExecutor()
-    result = executor.execute(source=DummyFindMany(), translated_query=translated_order)
-    assert result.sort_expressions == expected_expressions
+def test_beanie_sorting_query_default_entry_resolver__should_return_beanie_representation(entry, expected):
+    assert SortingQuery().default_entry_resolver(entry) == expected
 
 
-def test_beanie_sorter__should_have_correct_translator_and_executor():
-    sorter = BeanieSorter()
-    assert isinstance(sorter.translator, BeanieSortingQueryTranslator)
-    assert isinstance(sorter.executor, BeanieSortingQueryExecutor)
+######################
+## Tests for Sorter ##
+######################
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        pytest.param([("field1", 1)], id="descending"),
+        pytest.param([("field1", -1)], id="ascending"),
+    ],
+)
+def test_beanie_sorter_apply_query__should_apply_to_find_many(query, mocker):
+    sorter = Sorter()
+
+    result = sorter.apply_query(data=DummyFindMany(), query=query)
+    assert result.sort_expressions == query

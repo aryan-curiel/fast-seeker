@@ -1,40 +1,40 @@
 import pytest
 from django.db.models import QuerySet
 
-from fast_seeker.contrib.django.sorting import DjangoSorter, DjangoSortingQueryExecutor, DjangoSortingQueryTranslator
-from fast_seeker.core.sorting import SortingQuery
+from fast_seeker.contrib.django.sorting import Sorter, SortingQuery
+from fast_seeker.core.sorting import OrderEntry
+
+############################
+## Tests for SortingQuery ##
+############################
 
 
 @pytest.mark.parametrize(
-    "sorting_query, expected",
+    "entry, expected",
     [
-        pytest.param(SortingQuery(order_by=["-field1"]), ["-field1"], id="descending"),
-        pytest.param(SortingQuery(order_by=["+field1"]), ["field1"], id="ascending_explicit"),
-        pytest.param(SortingQuery(order_by=["field1"]), ["field1"], id="ascending"),
+        pytest.param(OrderEntry.desc("field1"), "-field1", id="descending"),
+        pytest.param(OrderEntry.asc("field1"), "field1", id="ascending"),
     ],
 )
-def test_django_sorting_translator(sorting_query, expected, mocker):
-    translator = DjangoSortingQueryTranslator()
-    translated_query = list(translator.translate(query=sorting_query))
-    assert translated_query == expected
+def test_django_sorting_query_default_entry_resolver__should_return_str_representation(entry, expected):
+    assert SortingQuery().default_entry_resolver(entry) == expected
+
+
+######################
+## Tests for Sorter ##
+######################
 
 
 @pytest.mark.parametrize(
-    "translated_order",
+    "query",
     [
         pytest.param(["field1"], id="descending"),
         pytest.param(["-field1"], id="ascending"),
     ],
 )
-def test_django_sorting_executor(translated_order, mocker):
+def test_django_sorter_apply_query__should_apply_to_queryset(query, mocker):
     mock_queryset = mocker.MagicMock(spec=QuerySet)
-    executor = DjangoSortingQueryExecutor()
+    sorter = Sorter()
 
-    executor.execute(source=mock_queryset, translated_query=translated_order)
-    mock_queryset.order_by.assert_called_once_with(*translated_order)
-
-
-def test_django_sorter__should_have_correct_translator_and_executor():
-    sorter = DjangoSorter()
-    assert isinstance(sorter.translator, DjangoSortingQueryTranslator)
-    assert isinstance(sorter.executor, DjangoSortingQueryExecutor)
+    sorter.apply_query(data=mock_queryset, query=query)
+    mock_queryset.order_by.assert_called_once_with(*query)

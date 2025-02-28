@@ -3,25 +3,18 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
-_TTranslationResult = TypeVar("_TTranslationResult")
+_TQuery = TypeVar("_TQuery")
 _TData = TypeVar("_TData")
-_TQuery = TypeVar("_TQuery", bound=BaseModel)
 
 
-class QueryTranslator(ABC, Generic[_TQuery, _TTranslationResult]):
+class QueryModel(ABC, BaseModel, Generic[_TQuery]):
     @abstractmethod
-    def translate(self, *, query: _TQuery, **kwargs) -> _TTranslationResult: ...
+    def model_dump_query(self) -> _TQuery: ...
 
 
-class QueryExecutor(ABC, Generic[_TData, _TTranslationResult]):
+class QueryProcessor(ABC, Generic[_TData, _TQuery]):
     @abstractmethod
-    def execute(self, *, source: _TData, translated_query: _TTranslationResult, **kwargs) -> _TData: ...
+    def apply_query(self, data: _TData, query: _TQuery, **kwargs) -> _TData: ...
 
-
-class QueryProcessor(ABC, Generic[_TQuery, _TTranslationResult, _TData]):
-    translator: QueryTranslator[_TQuery, _TTranslationResult]
-    executor: QueryExecutor[_TData, _TTranslationResult]
-
-    def __call__(self, *, source: _TData, query: _TQuery, **kwargs) -> _TData:
-        translated_query = self.translator.translate(query=query, **kwargs)
-        return self.executor.execute(source=source, translated_query=translated_query, **kwargs)
+    def process(self, *, data: _TData, query: QueryModel, **kwargs) -> _TData:
+        return self.apply_query(data=data, query=query.model_dump_query(), **kwargs)

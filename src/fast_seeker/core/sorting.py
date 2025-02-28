@@ -1,12 +1,15 @@
-from collections.abc import Callable, Iterable
+from abc import abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
-from typing import ClassVar, Generic, TypedDict, Union
+from typing import ClassVar, Generic, TypedDict, TypeVar
 
-from pydantic import BaseModel
 from typing_extensions import Self
 
-from .base import QueryProcessor, QueryTranslator, _TData, _TTranslationResult
+from .base import QueryModel, QueryProcessor, _TData
+
+_TOrderQueryEntry = TypeVar("_TOrderQueryEntry")
+
 
 ASC_SIGN = "+"
 DESC_SIGN = "-"
@@ -19,54 +22,55 @@ class SortDirection(Enum):
 
 @dataclass
 class OrderEntry:
+    original_key: str
     key: str
     direction: SortDirection
 
     @classmethod
     def asc(cls, key: str) -> Self:
-        return cls(key=key, direction=SortDirection.ASC)
+        return cls(original_key=key, key=key, direction=SortDirection.ASC)
 
     @classmethod
     def desc(cls, key: str) -> Self:
-        return cls(key=key, direction=SortDirection.DESC)
+        return cls(original_key=key, key=key, direction=SortDirection.DESC)
+
+    def __str__(self):
+        prefix = self.direction.value if self.direction != SortDirection.ASC else ""
+        return f"{prefix}{self.original_key}"
 
 
-class SortingQuery(BaseModel):
+class SortingConfigDict(TypedDict, total=False):
+    aliases: dict[str, str] = {}
+
+
+class BaseSortingQuery(QueryModel[Iterable[_TOrderQueryEntry]], Generic[_TOrderQueryEntry]):
+    sorting_config: ClassVar[SortingConfigDict] = SortingConfigDict()
+
     order_by: list[str] = []
-
-
-class TranslatorConfigDict(TypedDict, total=False):
-    field_translators: dict[str, Union[str, Callable[[SortingQuery, OrderEntry], OrderEntry]]]
-
-
-class SortingQueryBaseTranslator(QueryTranslator[SortingQuery, _TTranslationResult], Generic[_TTranslationResult]):
-    config: ClassVar[TranslatorConfigDict] = TranslatorConfigDict(field_translators={})
 
     @classmethod
     def _parse_entry(cls, order: str) -> OrderEntry:
-        order = order if order.startswith((ASC_SIGN, DESC_SIGN)) else f"{ASC_SIGN}{order}"
-        return OrderEntry(key=order[1:], direction=SortDirection(order[0]))
+        direction = SortDirection.ASC
+        original_key = order
+        if order.startswith(DESC_SIGN):
+            direction = SortDirection.DESC
+            original_key = order[1:]
+        key = cls.sorting_config.get("aliases", {}).get(original_key, original_key)
+        return OrderEntry(original_key=original_key, key=key, direction=direction)
 
-    def _translate_entry(self, query: SortingQuery, entry: OrderEntry) -> OrderEntry:
-        class_field_translator = getattr(self, f"translate_{entry.key}", None)
-        if class_field_translator:
-            return class_field_translator(query, entry)
-        config_translator = self.config.get("field_translators", {}).get(entry.key, None)
-        if not config_translator:
-            return entry
-        if isinstance(config_translator, str):
-            return OrderEntry(key=config_translator, direction=entry.direction)
-        if callable(config_translator):
-            return config_translator(query, entry)
-        raise ValueError(f"Invalid translator for {entry.key}: f{config_translator}")
+    @abstractmethod
+    def default_entry_resolver(self, entry: OrderEntry) -> _TOrderQueryEntry: ...
 
-    def _translate_as_entries(self, query: SortingQuery) -> Iterable[OrderEntry]:
-        for order_value in query.order_by:
+    def model_dump_query(self) -> Iterable[_TOrderQueryEntry]:
+        for order_value in self.order_by:
             parsed_entry = self._parse_entry(order_value)
-            yield self._translate_entry(query, parsed_entry)
+            entry_resolver = getattr(self, f"resolve_{parsed_entry.original_key}", self.default_entry_resolver)
+            yield entry_resolver(parsed_entry)
 
 
-class Sorter(
-    QueryProcessor[SortingQuery, _TTranslationResult, _TData],
-    Generic[_TData, _TTranslationResult],
-): ...
+class BaseSorter(Generic[_TData, _TOrderQueryEntry], QueryProcessor[_TData, Iterable[_TOrderQueryEntry]]):
+    @abstractmethod
+    def apply_query(self, data: _TData, query: Iterable[_TOrderQueryEntry], **kwargs) -> _TData: ...
+
+    def sort(self, *, data: _TData, query: BaseSortingQuery[_TOrderQueryEntry], **kwargs) -> _TData:
+        return self.process(data=data, query=query, **kwargs)

@@ -1,6 +1,6 @@
 import pytest
 
-from fast_seeker.core.sorting import OrderEntry, SortDirection, SortingQuery, SortingQueryBaseTranslator
+from fast_seeker.core.sorting import BaseSorter, BaseSortingQuery, OrderEntry, SortDirection, SortingConfigDict
 
 ##########################
 ## Tests for OrderEntry ##
@@ -19,105 +19,78 @@ def test_order_entry_desc__should_return_order_entry_with_desc_direction():
     assert entry.direction == SortDirection.DESC
 
 
-##############################################
-## Tests for the SortingQueryBaseTranslator ##
-##############################################
+@pytest.mark.parametrize(
+    "entry, expected_str",
+    [
+        pytest.param(OrderEntry.asc("key"), "key", id="ascending"),
+        pytest.param(OrderEntry.desc("key"), "-key", id="descending"),
+    ],
+)
+def test_order_entry_str__should_return_expected_string_representation(entry, expected_str):
+    assert str(entry) == expected_str
 
 
-class DummySortingQueryTranslator(SortingQueryBaseTranslator):
-    def translate(self, *, query, **kwargs):
-        return self._translate_as_entries(query)
+####################################
+## Tests for the BaseSortingQuery ##
+####################################
+
+
+class DummySortingQuery(BaseSortingQuery[OrderEntry]):
+    def default_entry_resolver(self, entry: OrderEntry) -> OrderEntry: ...
+
+
+class DummySortingQueryWithAlias(DummySortingQuery):
+    sorting_config = SortingConfigDict(aliases={"key": "alias"})
 
 
 @pytest.mark.parametrize(
-    "key_input,expected_entry",
+    "query,key_input,expected_key, expected_direction",
     [
-        pytest.param("key", OrderEntry.asc("key"), id="ascending"),
-        pytest.param("-key", OrderEntry.desc("key"), id="descending"),
-        pytest.param("+key", OrderEntry.asc("key"), id="explicit_ascending"),
+        pytest.param(DummySortingQuery, "key", "key", SortDirection.ASC, id="ascending"),
+        pytest.param(DummySortingQuery, "-key", "key", SortDirection.DESC, id="descending"),
+        pytest.param(DummySortingQueryWithAlias, "key", "alias", SortDirection.ASC, id="ascending_with_alias"),
+        pytest.param(DummySortingQueryWithAlias, "-key", "alias", SortDirection.DESC, id="descending_with_alias"),
     ],
 )
-def test_sorting_query_base_translator_parse_entry__returns_expected_entry_when_valid_value(key_input, expected_entry):
-    entry = DummySortingQueryTranslator._parse_entry(key_input)
-    assert entry == expected_entry
+def test_base_sorting_query_parse_entry__returns_expected_entry_when_valid_value(
+    query, key_input, expected_key, expected_direction
+):
+    entry = query._parse_entry(key_input)
+    assert entry.key == expected_key
+    assert entry.direction == expected_direction
 
 
-class ClassLevelOnlySortingQueryTranslator(DummySortingQueryTranslator):
-    def translate_key(self, query, entry):
-        return OrderEntry.asc("translated_key")
+class DummySortingQueryResolvers(BaseSortingQuery[str]):
+    def default_entry_resolver(self, entry: OrderEntry) -> str:
+        return "default"
+
+    def resolve_custom_field(self, entry: OrderEntry) -> str:
+        return "custom"
 
 
-class ConfigOnlyStringSortingQueryTranslator(DummySortingQueryTranslator):
-    config = {"field_translators": {"key": "translated_key"}}
+def test_base_sorting_query_model_dump_query__uses_expected_resolver():
+    query = DummySortingQueryResolvers(order_by=["default_field", "custom_field"])
+    result = list(query.model_dump_query())
+    assert result == ["default", "custom"]
 
 
-class ConfigOnlyCallableSortingQueryTranslator(DummySortingQueryTranslator):
-    config = {"field_translators": {"key": lambda query, entry: OrderEntry.asc("translated_key")}}
+##############################
+## Tests for the BaseSorter ##
+##############################
 
 
-class ConfigAndClassLevelSortingQueryTranslator(DummySortingQueryTranslator):
-    config = {"field_translators": {"key": "config_translated_key"}}
-
-    def translate_key(self, query, entry):
-        return OrderEntry.asc("translated_key")
+class DummySortingQueryForBaseSorter(BaseSortingQuery[OrderEntry]):
+    def default_entry_resolver(self, entry: OrderEntry) -> OrderEntry: ...
 
 
-@pytest.mark.parametrize(
-    "entry,translator,expected_result",
-    [
-        pytest.param(
-            OrderEntry.asc("key"), DummySortingQueryTranslator(), OrderEntry.asc("key"), id="with_no_translation"
-        ),
-        pytest.param(
-            OrderEntry.asc("key"),
-            ClassLevelOnlySortingQueryTranslator(),
-            OrderEntry.asc("translated_key"),
-            id="with_class_level_translation",
-        ),
-        pytest.param(
-            OrderEntry.asc("key"),
-            ConfigOnlyStringSortingQueryTranslator(),
-            OrderEntry.asc("translated_key"),
-            id="with_config_level_string_translation",
-        ),
-        pytest.param(
-            OrderEntry.asc("key"),
-            ConfigOnlyCallableSortingQueryTranslator(),
-            OrderEntry.asc("translated_key"),
-            id="with_config_level_callable_translation",
-        ),
-        pytest.param(
-            OrderEntry.asc("key"),
-            ConfigAndClassLevelSortingQueryTranslator(),
-            OrderEntry.asc("translated_key"),
-            id="with_config_and_class_level_translation",
-        ),
-    ],
-)
-def test_sorting_query_base_translator_translate_entry(entry, translator, expected_result):
-    result = translator._translate_entry(None, entry)
-    assert result == expected_result
+class DummySorter(BaseSorter[str, str]):
+    def apply_query(self, data, query, **kwargs): ...
 
 
-def test_sorting_query_base_translator_translate_entry__raises_value_error_when_invalid_translator_provided():
-    class InvalidTranslator(DummySortingQueryTranslator):
-        config = {"field_translators": {"key": 123}}
-
-    translator = InvalidTranslator()
-    query = SortingQuery(order_by=["key"])
-
-    entry = OrderEntry.asc("key")
-    with pytest.raises(ValueError):
-        translator._translate_entry(query, entry)
-
-
-def test_sorting_query_translate__returns_expected_entries():
-    translator = DummySortingQueryTranslator()
-    query = SortingQuery(order_by=["key1", "-key2", "+key3"])
-
-    result = translator.translate(query=query)
-    assert list(result) == [
-        OrderEntry.asc("key1"),
-        OrderEntry.desc("key2"),
-        OrderEntry.asc("key3"),
-    ]
+def test_base_sorter_sort__calls_process_with_expected_arguments(mocker):
+    sorter = DummySorter()
+    process_mock = mocker.patch.object(sorter, "process")
+    data = "data"
+    query = DummySortingQueryForBaseSorter(order_by=["key"])
+    sorter.sort(data=data, query=query)
+    process_mock.assert_called_once_with(data=data, query=query)

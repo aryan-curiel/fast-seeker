@@ -2,24 +2,16 @@ from collections.abc import Iterable
 
 from django.db.models import QuerySet
 
-from fast_seeker.core.base import QueryExecutor
-from fast_seeker.core.sorting import SortDirection, Sorter, SortingQuery, SortingQueryBaseTranslator
+from fast_seeker.core.sorting import BaseSorter, BaseSortingQuery, OrderEntry
 
 DjangoTranslatedQuery = Iterable[str]
 
 
-class DjangoSortingQueryTranslator(SortingQueryBaseTranslator[DjangoTranslatedQuery]):
-    def translate(self, *, query: SortingQuery, **kwargs) -> DjangoTranslatedQuery:
-        for entry in self._translate_as_entries(query, **kwargs):
-            direction_prefix = "-" if entry.direction == SortDirection.DESC else ""
-            yield f"{direction_prefix}{entry.key}"
+class SortingQuery(BaseSortingQuery[str]):
+    def default_entry_resolver(self, entry: OrderEntry) -> str:
+        return str(entry)
 
 
-class DjangoSortingQueryExecutor(QueryExecutor[QuerySet, DjangoTranslatedQuery]):
-    def execute(self, *, source: QuerySet, translated_query: DjangoTranslatedQuery, **kwargs):
-        return source.order_by(*translated_query)
-
-
-class DjangoSorter(Sorter[QuerySet, DjangoTranslatedQuery]):
-    translator = DjangoSortingQueryTranslator()
-    executor = DjangoSortingQueryExecutor()
+class Sorter(BaseSorter[QuerySet, str]):
+    def apply_query(self, data: QuerySet, query: Iterable[str], **kwargs) -> QuerySet:
+        return data.order_by(*query)

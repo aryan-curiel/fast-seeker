@@ -1,48 +1,39 @@
 from abc import abstractmethod
 from collections.abc import Iterable
-from typing import Any, ClassVar, Generic, TypedDict, TypeVar, Union
+from typing import Any, ClassVar, Generic, TypedDict, TypeVar
 
-from pydantic import BaseModel
+from pydantic.fields import FieldInfo
 
-from .base import QueryProcessor, QueryTranslator, _TData
+from .base import QueryModel, QueryProcessor, _TData
 
-_TFilterExpression = TypeVar("_TFilterExpression")
+_TFilterQueryEntry = TypeVar("_TFilterQueryEntry")
 
 
 class FiltererConfigDict(TypedDict, total=False):
-    ignore_none: bool
+    ignore_none: bool = True
 
 
-class FilterQuery(BaseModel): ...
-
-
-class FilterQueryBaseTranslator(
-    QueryTranslator[FilterQuery, Iterable[_TFilterExpression]], Generic[_TFilterExpression]
-):
-    config: ClassVar[FiltererConfigDict] = FiltererConfigDict(ignore_none=True)
+class BaseFilterQuery(QueryModel[Iterable[_TFilterQueryEntry]], Generic[_TFilterQueryEntry]):
+    filter_config: ClassVar[FiltererConfigDict] = FiltererConfigDict()
 
     @abstractmethod
-    def _default_field_translator(
-        self, query: FilterQuery, field_name: str, field_value: Any, **kwargs
-    ) -> _TFilterExpression: ...
+    def default_field_resolver(
+        self, field_name: str, field_value: Any, field_info: FieldInfo
+    ) -> _TFilterQueryEntry: ...
 
-    def _translate_field(self, query: FilterQuery, field_name: str, **kwargs) -> Union[_TFilterExpression, None]:
-        ignore_none = self.config.get("ignore_none", True)
-        field_value = getattr(query, field_name)
-        if field_value is None and ignore_none:
-            return None
-        custom_field_translator = getattr(self, f"translate_{field_name}", None)
-        field_translator = custom_field_translator or self._default_field_translator
-        return field_translator(query, field_name, field_value, **kwargs)
-
-    def translate(self, *, query: FilterQuery, **kwargs) -> Iterable[_TFilterExpression]:
-        for field_name in query.model_fields:
-            filter_expression = self._translate_field(query, field_name, **kwargs)
-            if filter_expression:
-                yield filter_expression
+    def model_dump_query(self) -> Iterable[_TFilterQueryEntry]:
+        should_ignore_none = self.filter_config.get("ignore_none", True)
+        for field_name, field_info in self.model_fields.items():
+            entry_value = getattr(self, field_name)
+            if entry_value is None and should_ignore_none:
+                continue
+            resolver = getattr(self, f"resolve_{field_name}", self.default_field_resolver)
+            yield resolver(field_name, entry_value, field_info)
 
 
-class Filterer(
-    QueryProcessor[FilterQuery, Iterable[_TFilterExpression], _TData],
-    Generic[_TData, _TFilterExpression],
-): ...
+class BaseFilterer(Generic[_TData, _TFilterQueryEntry], QueryProcessor[_TData, Iterable[_TFilterQueryEntry]]):
+    @abstractmethod
+    def apply_query(self, data: _TData, query: Iterable[_TFilterQueryEntry], **kwargs) -> _TData: ...
+
+    def filter(self, data: _TData, query: BaseFilterQuery, **kwargs) -> _TData:
+        return self.process(data=data, query=query, **kwargs)

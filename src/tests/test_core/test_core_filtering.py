@@ -1,78 +1,70 @@
-from typing import Any, Union
+from typing import Union
 
-import pytest
+from fast_seeker.core.filtering import BaseFilterer, BaseFilterQuery, FiltererConfigDict
 
-from fast_seeker.core.filtering import FiltererConfigDict, FilterQuery, FilterQueryBaseTranslator
-
-
-class DummyFilter(FilterQuery):
-    field: Union[str, None] = None
-    another_field: Union[str, None] = None
+###################################
+## Tests for the BaseFilterQuery ##
+###################################
 
 
-class DummyFilterQueryTranslator(FilterQueryBaseTranslator):
-    def _default_field_translator(self, query, field_name, field_value) -> dict[str, Any]:
-        return {field_name: field_value}
+class DummyFilterQuery(BaseFilterQuery[str]):
+    field1: Union[str, None] = None
+
+    def default_field_resolver(self, field_name: str, field_value: str, field_info: str) -> str:
+        return f"{field_name}={field_value}"
 
 
-class DummyFilterQueryTranslatorWithCustomFieldTranslator(DummyFilterQueryTranslator):
-    def translate_field(self, query, field_name, field_value) -> dict[str, Any]:
-        return {field_name: "custom"}
+def test_base_filter_query__should_ignore_none_when_passed_to_filter_by_default():
+    query = DummyFilterQuery()
+    assert list(query.model_dump_query()) == []
 
 
-class DummyFilterQueryTranslatorWithCustomFieldTranslatorNone(DummyFilterQueryTranslator):
-    def translate_field(self, query, field_name, field_value) -> dict[str, Any]:
-        return None
+class DummyQueryWithIgnoreNoneFalse(DummyFilterQuery):
+    filter_config = FiltererConfigDict(ignore_none=False)
 
 
-class DummyFilterQueryTranslatorWithIgnoreNoneTrue(DummyFilterQueryTranslator):
-    config = FiltererConfigDict(ignore_none=True)
+class test_base_filter_query__should_not_ignore_none_when_configured:
+    query = DummyQueryWithIgnoreNoneFalse()
+    assert list(query.model_dump_query()) == ["field1=None"]
 
 
-class DummyFilterQueryTranslatorWithIgnoreNoneFalse(DummyFilterQueryTranslator):
-    config = FiltererConfigDict(ignore_none=False)
+class DummyFilterQueryWithIgnoreNoneTrue(DummyFilterQuery):
+    filter_config = FiltererConfigDict(ignore_none=True)
 
 
-@pytest.mark.parametrize(
-    "translator_class, expected",
-    [
-        pytest.param(DummyFilterQueryTranslator, None, id="ignore_none_default"),
-        pytest.param(
-            DummyFilterQueryTranslatorWithCustomFieldTranslator, None, id="ignore_none_custom_field_translator"
-        ),
-        pytest.param(
-            DummyFilterQueryTranslatorWithCustomFieldTranslatorNone, None, id="ignore_none_custom_field_translator_nonw"
-        ),
-        pytest.param(DummyFilterQueryTranslatorWithIgnoreNoneTrue, None, id="ignore_none_true"),
-        pytest.param(DummyFilterQueryTranslatorWithIgnoreNoneFalse, {"field": None}, id="ignore_none_false"),
-    ],
-)
-def test_filter_translator__considers_ignore_configs(translator_class, expected):
-    translator = translator_class()
-    translated_field = translator._translate_field(DummyFilter(), "field")
-    assert translated_field == expected
+def test_base_filter_query__should_ignore_none_when_configured():
+    query = DummyFilterQueryWithIgnoreNoneTrue()
+    assert list(query.model_dump_query()) == []
 
 
-def test_filter_translator_field__should_use_default_resolver_if_not_custom():
-    translator = DummyFilterQueryTranslator()
-    field_value = "value"
-    translated_field = translator._translate_field(DummyFilter(field=field_value), "field")
-    assert translated_field == {"field": field_value}
+class DummyFilterQueryWithCustomResolver(DummyFilterQuery):
+    def resolve_field1(self, field_name: str, field_value: str, field_info: str) -> str:
+        return f"custom_{field_name}={field_value}"
 
 
-def test_filterer_translate_field__should_use_custom_resolver_if_custom():
-    translator = DummyFilterQueryTranslatorWithCustomFieldTranslator()
-    translated_field = translator._translate_field(DummyFilter(field="value"), "field")
-    assert translated_field == {"field": "custom"}
+def test_base_filter_query__should_use_custom_resolver_when_available():
+    query = DummyFilterQueryWithCustomResolver(field1="value")
+    assert list(query.model_dump_query()) == ["custom_field1=value"]
 
 
-def test_filterer_translate__should_ignore_none_filter_expressions():
-    translator = DummyFilterQueryTranslatorWithCustomFieldTranslatorNone()
-    translated = list(translator.translate(query=DummyFilter(field="value", another_field="another_value")))
-    assert translated == [{"another_field": "another_value"}]
+def test_base_filter_query__should_use_default_resolver_when_no_custom_resolver():
+    query = DummyFilterQuery(field1="value")
+    assert list(query.model_dump_query()) == ["field1=value"]
 
 
-def test_filter_query_base_translator__should_translate_all_fields():
-    translator = DummyFilterQueryTranslator()
-    translated = list(translator.translate(query=DummyFilter(field="value", another_field="another_value")))
-    assert translated == [{"field": "value"}, {"another_field": "another_value"}]
+################################
+## Tests for the BaseFilterer ##
+################################
+
+
+class DummyFilterer(BaseFilterer[str, str]):
+    def apply_query(self, data, query, **kwargs): ...
+
+
+def test_base_filterer_filter__calls_process_with_expected_arguments(mocker):
+    filterer = DummyFilterer()
+    process_mock = mocker.patch.object(filterer, "process")
+    data = "data"
+    query = DummyFilterQuery(field1="value")
+    filterer.filter(data=data, query=query)
+    process_mock.assert_called_once_with(data=data, query=query)

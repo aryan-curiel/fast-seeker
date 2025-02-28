@@ -1,23 +1,26 @@
-from fast_seeker.core.base import QueryExecutor, QueryProcessor, QueryTranslator
+from fast_seeker.core.base import QueryModel, QueryProcessor
 
 
-class DummyQueryTranslator(QueryTranslator):
-    def translate(self, *, query, **kwargs):
-        return query
+class DummyQueryModel(QueryModel[str]):
+    field_1: str
+
+    def model_dump_query(self) -> str:
+        return self.field_1
 
 
-class DummyQueryExecutor(QueryExecutor):
-    def execute(self, *, source, translated_query, **kwargs):
-        return source
+class DummyQueryProcessor(QueryProcessor[str, str]):
+    def apply_query(self, *, data: str, query: str, **kwargs) -> str:
+        return data + query
 
 
-class DummyQueryProcessor(QueryProcessor):
-    translator = DummyQueryTranslator()
-    executor = DummyQueryExecutor()
-
-
-def test_query_processor__should_call_translator_and_executor(mocker):
-    data, query = "data", "query"
+def test_query_processor_process__returns_expected_result():
+    # Arrange
     query_processor = DummyQueryProcessor()
-    result = query_processor(source=data, query=query)
-    assert result == data
+    data = "data"
+    query = DummyQueryModel(field_1="query")
+
+    # Act
+    result = query_processor.process(data=data, query=query)
+
+    # Assert
+    assert result == "dataquery"

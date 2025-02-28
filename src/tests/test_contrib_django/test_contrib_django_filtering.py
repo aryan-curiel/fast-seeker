@@ -1,23 +1,25 @@
 from django.db.models import Q, QuerySet
 
-from fast_seeker.contrib.django.filtering import DjangoFilterer, DjangoFilterQueryExecutor, DjangoFilterQueryTranslator
+from fast_seeker.contrib.django.filtering import Filterer, FilterQuery
+
+###########################
+## Tests for FilterQuery ##
+###########################
 
 
-def test_django_filter_query_translator_default_field_translator__should_return_valid_q_object():
-    translator = DjangoFilterQueryTranslator()
-    q_object = translator._default_field_translator(None, "field", "value")
-    assert q_object == Q(field="value")
+def test_django_filter_query_default_field_resolver__should_return_q_object():
+    query = FilterQuery()
+    assert query.default_field_resolver(field_name="field", field_value="value") == Q(field="value")
 
 
-def test_django_filter_query_executor__should_return_filtered_queryset(mocker):
-    executor = DjangoFilterQueryExecutor()
+########################
+## Tests for Filterer ##
+########################
+
+
+def test_django_filterer__should_return_filtered_queryset(mocker):
+    filterer = Filterer()
     mock_queryset = mocker.MagicMock(spec=QuerySet)
     q_object = Q(field="value")
-    executor.execute(source=mock_queryset, translated_query=[q_object])
+    filterer.apply_query(data=mock_queryset, query=[q_object])
     mock_queryset.filter.assert_called_once_with(q_object)
-
-
-def test_django_filterer__should_have_correct_translator_and_executor():
-    filterer = DjangoFilterer()
-    assert isinstance(filterer.translator, DjangoFilterQueryTranslator)
-    assert isinstance(filterer.executor, DjangoFilterQueryExecutor)

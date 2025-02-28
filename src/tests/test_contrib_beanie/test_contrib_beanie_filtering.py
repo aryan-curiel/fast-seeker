@@ -1,22 +1,24 @@
-from fast_seeker.contrib.beanie.filtering import BeanieFilterer, BeanieFilterQueryExecutor, BeanieFilterQueryTranslator
+from fast_seeker.contrib.beanie.filtering import Filterer, FilterQuery
 
 from .utils import DummyFindMany
 
-
-def test_beanie_filter_query_translator_default_field_translator__should_return_valid_dict():
-    translator = BeanieFilterQueryTranslator()
-    translated_args = translator._default_field_translator(None, "field", "value")
-    assert translated_args == {"field": "value"}
+###########################
+## Tests for FilterQuery ##
+###########################
 
 
-def test_beanie_filter_query_executor__should_return_filtered_queryset():
-    executor = BeanieFilterQueryExecutor()
-    expressions = [{"field": "value"}]
-    result = executor.execute(source=DummyFindMany(), translated_query=expressions)
-    assert result.find_expressions == expressions
+def test_beanie_filter_query_default_entry_resolver__should_return_beanie_representation():
+    assert FilterQuery().default_field_resolver(field_name="field", field_value="value") == {"field": "value"}
 
 
-def test_beanie_filterer__should_have_correct_translator_and_executor():
-    filterer = BeanieFilterer()
-    assert isinstance(filterer.translator, BeanieFilterQueryTranslator)
-    assert isinstance(filterer.executor, BeanieFilterQueryExecutor)
+########################
+## Tests for Filterer ##
+########################
+
+
+def test_beanie_sorter_apply_query__should_apply_to_find_many():
+    filterer = Filterer()
+    query = [{"field": "value"}]
+
+    result = filterer.apply_query(data=DummyFindMany(), query=query)
+    assert result.find_expressions == query

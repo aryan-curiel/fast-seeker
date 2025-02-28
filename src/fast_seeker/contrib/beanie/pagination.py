@@ -2,12 +2,10 @@ from typing import TypedDict
 
 from beanie.odm.queries.find import FindMany
 
-from fast_seeker.core.base import QueryExecutor, QueryTranslator
 from fast_seeker.core.pagination import (
-    LimitOffsetPaginator,
-    LimitOffsetQuery,
-    PageNumberPaginator,
-    PageNumberQuery,
+    BaseLimitOffsetQuery,
+    BasePageNumberQuery,
+    BasePaginator,
 )
 
 
@@ -16,26 +14,16 @@ class BeanieQueryPage(TypedDict):
     skip: int
 
 
-class BeanieLimitOffsetQueryTranslator(QueryTranslator[LimitOffsetQuery, BeanieQueryPage]):
-    def translate(self, *, query: LimitOffsetQuery, **kwargs) -> BeanieQueryPage:
-        return BeanieQueryPage(limit=query.limit, skip=query.offset)
+class LimitOffsetQuery(BaseLimitOffsetQuery[BeanieQueryPage]):
+    def model_dump_query(self) -> BeanieQueryPage:
+        return BeanieQueryPage(limit=self.limit, skip=self.offset)
 
 
-class BeaniePageNumberQueryTranslator(QueryTranslator[PageNumberQuery, BeanieQueryPage]):
-    def translate(self, *, query: PageNumberQuery, **kwargs) -> BeanieQueryPage:
-        return BeanieQueryPage(limit=query.size, skip=(query.page - 1) * query.size)
+class PageNumberQuery(BasePageNumberQuery[BeanieQueryPage]):
+    def model_dump_query(self) -> BeanieQueryPage:
+        return BeanieQueryPage(limit=self.size, skip=(self.page - 1) * self.size)
 
 
-class BeaniePaginationExecutor(QueryExecutor[FindMany, BeanieQueryPage]):
-    def execute(self, *, source: FindMany, translated_query: BeanieQueryPage, **kwargs) -> FindMany:
-        return source.limit(translated_query["limit"]).skip(translated_query["skip"])
-
-
-class BeanieLimitOffsetPaginator(LimitOffsetPaginator[FindMany, BeanieQueryPage]):
-    translator = BeanieLimitOffsetQueryTranslator()
-    executor = BeaniePaginationExecutor()
-
-
-class BeaniePageNumberPaginator(PageNumberPaginator[FindMany, BeanieQueryPage]):
-    translator = BeaniePageNumberQueryTranslator()
-    executor = BeaniePaginationExecutor()
+class Paginator(BasePaginator[FindMany, BeanieQueryPage]):
+    def apply_query(self, *, data: FindMany, query: BeanieQueryPage, **kwargs) -> FindMany:
+        return data.limit(query["limit"]).skip(query["skip"])

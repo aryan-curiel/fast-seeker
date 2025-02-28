@@ -1,34 +1,22 @@
 from django.db.models import QuerySet
 
-from fast_seeker.core.base import QueryExecutor, QueryTranslator
 from fast_seeker.core.pagination import (
-    LimitOffsetPaginator,
-    LimitOffsetQuery,
-    PageNumberPaginator,
-    PageNumberQuery,
+    BaseLimitOffsetQuery,
+    BasePageNumberQuery,
+    BasePaginator,
 )
 
 
-class DjangoLimitOffsetQueryTranslator(QueryTranslator[LimitOffsetQuery, slice]):
-    def translate(self, *, query: LimitOffsetQuery, **kwargs) -> slice:
-        return slice(query.offset, query.offset + query.limit)
+class LimitOffsetQuery(BaseLimitOffsetQuery[slice]):
+    def model_dump_query(self):
+        return slice(self.offset, self.offset + self.limit)
 
 
-class DjangoPageNumberQueryTranslator(QueryTranslator[PageNumberQuery, slice]):
-    def translate(self, *, query: PageNumberQuery, **kwargs) -> slice:
-        return slice((query.page - 1) * query.size, query.page * query.size)
+class PageNumberQuery(BasePageNumberQuery[slice]):
+    def model_dump_query(self):
+        return slice((self.page - 1) * self.size, self.page * self.size)
 
 
-class DjangoPaginationExecutor(QueryExecutor[QuerySet, slice]):
-    def execute(self, *, source: QuerySet, translated_query: slice, **kwargs) -> QuerySet:
-        return source[translated_query]
-
-
-class DjangoLimitOffsetPaginator(LimitOffsetPaginator[QuerySet, slice]):
-    translator = DjangoLimitOffsetQueryTranslator()
-    executor = DjangoPaginationExecutor()
-
-
-class DjangoPageNumberPaginator(PageNumberPaginator[QuerySet, slice]):
-    translator = DjangoPageNumberQueryTranslator()
-    executor = DjangoPaginationExecutor()
+class Paginator(BasePaginator[QuerySet, slice]):
+    def apply_query(self, *, data: QuerySet, query: slice, **kwargs):
+        return data[query]
